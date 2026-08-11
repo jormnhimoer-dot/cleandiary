@@ -248,8 +248,14 @@ button{border:none;background:none;cursor:pointer;padding:0}
   position:absolute;left:0;right:0;bottom:0;max-height:92dvh;background:var(--card);
   border-radius:18px 18px 0 0;display:flex;flex-direction:column;
 }
-.sh-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
-.sh-head .t{font-weight:800;font-size:16px;flex:1}
+.sh-head{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
+.sh-head .t{font-weight:800;font-size:15.5px;flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-head .sh-sp{flex:1}
+.shbtn{font-size:12.5px;font-weight:800;padding:8px 13px;border-radius:9px;flex:0 0 auto}
+.shbtn.save{background:var(--dark);color:#fff}
+.shbtn.save:active{background:#334155}
+.shbtn.del{background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca}
+.shbtn.del:active{background:#fee2e2}
 .sh-body{overflow-y:auto;padding:14px 16px calc(var(--safe-b) + 16px);-webkit-overflow-scrolling:touch}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:800;color:var(--sub);margin-bottom:5px}
@@ -474,25 +480,25 @@ const slotName = k => (SLOTS.find(s=>s.key===k)||SLOTS[0]).name;
 const slotHex  = k => (SLOTS.find(s=>s.key===k)||SLOTS[0]).hex;
 
 /* ---------- 현장별 색 ----------
-   c=막대/테두리 색, bg=달력 칸 배경, ink=글자색.
+   c=막대/테두리 색, bg=달력 칸을 채우는 색(c를 30%로 옅게 탄 것), ink=글자색.
    순서는 이웃끼리 최대한 안 닮게 섞어 두었습니다(자동 배정 시 구분이 잘 되도록). */
 const SITE_COLORS = [
-  { c:'#3b82f6', bg:'#eff6ff', ink:'#1e3a8a' },
-  { c:'#ef4444', bg:'#fef2f2', ink:'#7f1d1d' },
-  { c:'#22c55e', bg:'#f0fdf4', ink:'#14532d' },
-  { c:'#a855f7', bg:'#faf5ff', ink:'#581c87' },
-  { c:'#f97316', bg:'#fff7ed', ink:'#7c2d12' },
-  { c:'#06b6d4', bg:'#ecfeff', ink:'#164e63' },
-  { c:'#ec4899', bg:'#fdf2f8', ink:'#831843' },
-  { c:'#84cc16', bg:'#f7fee7', ink:'#365314' },
-  { c:'#6366f1', bg:'#eef2ff', ink:'#312e81' },
-  { c:'#eab308', bg:'#fefce8', ink:'#713f12' },
-  { c:'#14b8a6', bg:'#f0fdfa', ink:'#134e4a' },
-  { c:'#f43f5e', bg:'#fff1f2', ink:'#881337' },
-  { c:'#8b5cf6', bg:'#f5f3ff', ink:'#4c1d95' },
-  { c:'#0ea5e9', bg:'#f0f9ff', ink:'#0c4a6e' },
-  { c:'#d946ef', bg:'#fdf4ff', ink:'#701a75' },
-  { c:'#78716c', bg:'#fafaf9', ink:'#292524' }
+  { c:'#3b82f6', bg:'#c4dafc', ink:'#1e3a8a' },
+  { c:'#ef4444', bg:'#fac7c7', ink:'#7f1d1d' },
+  { c:'#22c55e', bg:'#bdeecf', ink:'#14532d' },
+  { c:'#a855f7', bg:'#e5ccfd', ink:'#581c87' },
+  { c:'#f97316', bg:'#fdd5b9', ink:'#7c2d12' },
+  { c:'#06b6d4', bg:'#b4e9f2', ink:'#164e63' },
+  { c:'#ec4899', bg:'#f9c8e0', ink:'#831843' },
+  { c:'#84cc16', bg:'#daf0b9', ink:'#365314' },
+  { c:'#6366f1', bg:'#d0d1fb', ink:'#312e81' },
+  { c:'#eab308', bg:'#f9e8b5', ink:'#713f12' },
+  { c:'#14b8a6', bg:'#b8eae4', ink:'#134e4a' },
+  { c:'#f43f5e', bg:'#fcc5cf', ink:'#881337' },
+  { c:'#8b5cf6', bg:'#dccefc', ink:'#4c1d95' },
+  { c:'#0ea5e9', bg:'#b7e4f8', ink:'#0c4a6e' },
+  { c:'#d946ef', bg:'#f4c8fa', ink:'#701a75' },
+  { c:'#78716c', bg:'#d6d4d3', ink:'#292524' }
 ];
 const colorAt = i => SITE_COLORS[((i|0) % SITE_COLORS.length + SITE_COLORS.length) % SITE_COLORS.length];
 
@@ -1300,8 +1306,27 @@ daypanel.addEventListener('click', onAct);
 
 /* ---------- 시트 ---------- */
 const sheet = $('#sheet');
-function openSheet(title, html, after){
+function openSheet(title, html, after, acts){
   $('#sheetTitle').textContent = title;
+
+  /* 헤더 버튼은 매번 지우고 다시 답니다 — 다른 화면에 남아 있으면 안 되니까 */
+  const hd = $('#sheetTitle').parentNode;
+  hd.querySelectorAll('.shbtn,.sh-sp').forEach(e=>e.remove());
+  if(acts){
+    const sp = document.createElement('div'); sp.className = 'sh-sp';
+    $('#sheetTitle').after(sp);
+    if(acts.del){                                  /* 새로 등록할 땐 지울 게 없으므로 숨김 */
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'shbtn del'; b.textContent = '삭제';
+      b.onclick = ()=>delSite(acts.del);
+      $('#sheetClose').before(b);
+    }
+    const s = document.createElement('button');
+    s.type = 'button'; s.className = 'shbtn save'; s.textContent = '저장';
+    s.onclick = saveSite;
+    $('#sheetClose').before(s);
+  }
+
   $('#sheetBody').innerHTML = html;
   sheet.classList.add('on');
   if(after) after();
@@ -1419,7 +1444,7 @@ function editSite(id, presetDate){
       ${s?`<button class="btn dan" onclick="delSite('${s.id}')">삭제</button>`:''}
       <button class="btn pri" onclick="saveSite()">저장</button>
     </div>
-  `, bindForm);
+  `, bindForm, { del: s ? s.id : null });
 }
 
 function bindForm(){
