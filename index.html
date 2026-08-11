@@ -140,8 +140,11 @@ button{border:none;background:none;cursor:pointer;padding:0}
 }
 /* 현장별 색 모드 — --c(진한색) --cbg(연한 배경) --cink(글자색)을 인라인으로 받음 */
 .ev.sc{background:var(--cbg);color:var(--cink);border-left-color:var(--c)}
-.ev.sc.s-dawn{background:#0f172a;color:#e0f2fe;border:1px dashed var(--c);border-left:3px solid var(--c)}
-.ev.sc.s-dawn::before{border-left-color:var(--c)}
+.ev.sc.s-dawn{background:var(--cdk);color:#fff;border:1px dashed rgba(255,255,255,.7);border-left:3px solid rgba(0,0,0,.3)}
+.ev.sc.s-dawn::before{border-left-color:#fff}
+.ev.sc.done.s-dawn{background:#94a3b8!important;color:#fff!important;opacity:.55;
+  border-color:rgba(255,255,255,.6)!important;border-left-color:rgba(0,0,0,.25)!important}
+.ev.sc.done.s-dawn::before{border-left-color:#fff!important}
 /* 완료 — 왼쪽 색 막대만 회색으로 (칸 공간을 전혀 쓰지 않음) */
 .ev.done{border-left-color:#cbd5e1!important;opacity:.62}
 .ev.done.s-dawn{border-color:#64748b!important;border-left-color:#64748b!important;opacity:.5}
@@ -483,22 +486,22 @@ const slotHex  = k => (SLOTS.find(s=>s.key===k)||SLOTS[0]).hex;
    c=막대/테두리 색, bg=달력 칸을 채우는 색(c를 30%로 옅게 탄 것), ink=글자색.
    순서는 이웃끼리 최대한 안 닮게 섞어 두었습니다(자동 배정 시 구분이 잘 되도록). */
 const SITE_COLORS = [
-  { c:'#3b82f6', bg:'#c4dafc', ink:'#1e3a8a' },
-  { c:'#ef4444', bg:'#fac7c7', ink:'#7f1d1d' },
-  { c:'#22c55e', bg:'#bdeecf', ink:'#14532d' },
-  { c:'#a855f7', bg:'#e5ccfd', ink:'#581c87' },
-  { c:'#f97316', bg:'#fdd5b9', ink:'#7c2d12' },
-  { c:'#06b6d4', bg:'#b4e9f2', ink:'#164e63' },
-  { c:'#ec4899', bg:'#f9c8e0', ink:'#831843' },
-  { c:'#84cc16', bg:'#daf0b9', ink:'#365314' },
-  { c:'#6366f1', bg:'#d0d1fb', ink:'#312e81' },
-  { c:'#eab308', bg:'#f9e8b5', ink:'#713f12' },
-  { c:'#14b8a6', bg:'#b8eae4', ink:'#134e4a' },
-  { c:'#f43f5e', bg:'#fcc5cf', ink:'#881337' },
-  { c:'#8b5cf6', bg:'#dccefc', ink:'#4c1d95' },
-  { c:'#0ea5e9', bg:'#b7e4f8', ink:'#0c4a6e' },
-  { c:'#d946ef', bg:'#f4c8fa', ink:'#701a75' },
-  { c:'#78716c', bg:'#d6d4d3', ink:'#292524' }
+  { c:'#3b82f6', bg:'#c4dafc', ink:'#1e3a8a' , dk:'#1d4ed8' },
+  { c:'#ef4444', bg:'#fac7c7', ink:'#7f1d1d' , dk:'#b91c1c' },
+  { c:'#22c55e', bg:'#bdeecf', ink:'#14532d' , dk:'#15803d' },
+  { c:'#a855f7', bg:'#e5ccfd', ink:'#581c87' , dk:'#7e22ce' },
+  { c:'#f97316', bg:'#fdd5b9', ink:'#7c2d12' , dk:'#c2410c' },
+  { c:'#06b6d4', bg:'#b4e9f2', ink:'#164e63' , dk:'#0e7490' },
+  { c:'#ec4899', bg:'#f9c8e0', ink:'#831843' , dk:'#be185d' },
+  { c:'#84cc16', bg:'#daf0b9', ink:'#365314' , dk:'#4d7c0f' },
+  { c:'#6366f1', bg:'#d0d1fb', ink:'#312e81' , dk:'#4338ca' },
+  { c:'#eab308', bg:'#f9e8b5', ink:'#713f12' , dk:'#a16207' },
+  { c:'#14b8a6', bg:'#b8eae4', ink:'#134e4a' , dk:'#0f766e' },
+  { c:'#f43f5e', bg:'#fcc5cf', ink:'#881337' , dk:'#be123c' },
+  { c:'#8b5cf6', bg:'#dccefc', ink:'#4c1d95' , dk:'#6d28d9' },
+  { c:'#0ea5e9', bg:'#b7e4f8', ink:'#0c4a6e' , dk:'#0369a1' },
+  { c:'#d946ef', bg:'#f4c8fa', ink:'#701a75' , dk:'#a21caf' },
+  { c:'#78716c', bg:'#d6d4d3', ink:'#292524' , dk:'#44403c' }
 ];
 const colorAt = i => SITE_COLORS[((i|0) % SITE_COLORS.length + SITE_COLORS.length) % SITE_COLORS.length];
 
@@ -844,7 +847,7 @@ function cellBody(d, s){
 
   const evHtml = ({s:st, w}) => {
     const k = bySite() ? siteColor(st) : null;
-    const sty = k ? ` style="--c:${k.c};--cbg:${k.bg};--cink:${k.ink}"` : '';
+    const sty = k ? ` style="--c:${k.c};--cbg:${k.bg};--cink:${k.ink};--cdk:${k.dk||k.c}"` : '';
     const dn = isDone(ymd(w), st.id) ? ' done' : '';
     return `<div class="ev s-${st.slot}${k?' sc':''}${dn}"${sty} data-act="site" data-id="${st.id}" data-date="${ymd(w)}">${esc(st.short||st.name)}</div>`;
   };
