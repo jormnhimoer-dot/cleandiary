@@ -109,8 +109,20 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .ev.s-evening{background:#f5f3ff;border-left-color:var(--evening)}
 .ev.s-dawn{background:#0f172a;color:#e0f2fe;border:1px dashed #38bdf8;border-left:3px solid #38bdf8;padding-left:3px}
 .ev.once{background:#ecfdf5;color:#065f46;border:1px dashed #10b981;border-left:3px solid #10b981;padding-left:3px}
-.ev.s-dawn{font-size:9.5px;letter-spacing:-.9px;padding-left:2px;padding-right:1px}
-.ev .arw{font-size:8px;font-weight:900;opacity:.8;letter-spacing:-.5px}
+.ev.s-dawn{font-size:10px;letter-spacing:-.6px;padding-left:3px;padding-right:1px}
+.ev.s-dawn::before{                       /* \u2190 전날 밤에 출발한다는 표시 (글꼴과 무관하게 항상 보임) */
+  content:"";display:inline-block;vertical-align:middle;margin:-1px 3px 0 0;
+  width:0;height:0;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;
+  border-right:5px solid #38bdf8;
+}
+.dp-item.dawn .n::before{
+  content:"";display:inline-block;vertical-align:middle;margin:-2px 6px 0 0;
+  width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;
+  border-right:7px solid #38bdf8;
+}
+.lg-dawn{width:0!important;height:0!important;border-top:4px solid transparent!important;
+  border-bottom:4px solid transparent!important;border-right:6px solid #38bdf8!important;
+  border-radius:0!important;background:none!important}
 .evmore{font-size:9px;font-weight:800;color:var(--sub);text-align:center}
 .dawnsep{height:0;border-top:2px dotted #94a3b8;margin:2px 1px 1px}
 
@@ -478,7 +490,7 @@ function renderCal(){
       <span><i style="background:#f59e0b"></i>아침</span>
       <span><i style="background:#3b82f6"></i>오후</span>
       <span><i style="background:#8b5cf6"></i>저녁</span>
-      <span><i style="background:#0f172a;border:1px dashed #38bdf8"></i>새벽(\u25c2전날 밤 출발)</span>
+      <span><i class="lg-dawn"></i>새벽(전날 밤 출발)</span>
       <span><i style="background:#ecfdf5;border:1px dashed #10b981"></i>일회성</span>
     </div>`;
 
@@ -503,10 +515,8 @@ function cellBody(d, s){
   const rest = list.filter(x=>x.s.slot!=='dawn');
   const t = onceOn(s);
 
-  const evHtml = ({s:st, w}) => {
-    const arrow = st.slot==='dawn' ? `<span class="arw">\u25c2${DOW_KR[addDays(w,-1).getDay()]}\ubc24</span>` : '';
-    return `<div class="ev s-${st.slot}" data-act="site" data-id="${st.id}" data-date="${ymd(w)}">${esc(st.short||st.name)}${arrow}</div>`;
-  };
+  const evHtml = ({s:st, w}) =>
+    `<div class="ev s-${st.slot}" data-act="site" data-id="${st.id}" data-date="${ymd(w)}">${esc(st.short||st.name)}</div>`;
 
   const chips = [];                       // 새벽 \u2192 일회성 \u2192 아침\u00b7오후\u00b7저녁
   dawn.forEach(x=>chips.push(evHtml(x)));
@@ -613,15 +623,23 @@ function renderSearch(){
 }
 
 /* 클릭 위임 */
+let lastTap = {};
 function onAct(e){
   const el = e.target.closest('[data-act]'); if(!el) return;
   const act = el.dataset.act, date = el.dataset.date;
   if(act==='site'){ e.stopPropagation(); bannerSite(el.dataset.id, date); return; }
-  if(act==='newsite'){ editSite(); return; }
+  if(act==='newsite'){ editSite(null, SEL); return; }
   if(act==='closepanel'){ panelOpen = false; renderCal(); renderPanel(); return; }
   if(act==='once'){ TAB = 1; D.ui.tab = 1; save(); render(); return; }
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; anchor = startOfWeek(parseYmd(date)); render(); return; }
   if(act==='day'){
+    const now = new Date().getTime();
+    if(lastTap.date===date && now-lastTap.t < 400){        // 빈 곳 더블탭 → 그 요일로 현장 추가
+      lastTap = {}; SEL = date; closeBanner(); editSite(null, date);
+      toast(DOW_KR[parseYmd(date).getDay()]+'요일로 새 현장 등록');
+      return;
+    }
+    lastTap = { date, t: now };
     panelOpen = !(panelOpen && SEL===date);   // 같은 날 다시 누르면 접힘
     SEL = date; closeBanner(); renderCal(); renderPanel();
   }
@@ -662,11 +680,13 @@ function openSiteList(){
 }
 
 let form = null;
-function editSite(id){
+function editSite(id, presetDate){
   const s = id ? D.sites.find(x=>x.id===id) : null;
+  const pd = (!s && presetDate) ? parseYmd(presetDate) : null;   // 달력에서 바로 만들 때 그 요일을 미리 체크
   form = s ? JSON.parse(JSON.stringify(s)) : {
     id: uid(), name:'', short:'', slot:'morning',
-    rep:{ type:'weekly', days:[], anchor: todayYmd(), day:1, nth:1, weekday:1 },
+    rep:{ type:'weekly', days: pd?[pd.getDay()]:[], anchor: presetDate||todayYmd(),
+          day: pd?pd.getDate():1, nth: pd?Math.min(5,Math.floor((pd.getDate()-1)/7)+1):1, weekday: pd?pd.getDay():1 },
     startDate:'', address:'', manager:'', entry:'', parking:'', work:'', note:'', price:'',
     invoice:false, paused:false, skips:[]
   };
@@ -680,7 +700,7 @@ function editSite(id){
 
     <div class="field"><label>시간대</label>
       <div class="seg" id="fSlot">${SLOTS.map(x=>`<button data-v="${x.key}">${x.name}</button>`).join('')}</div>
-      <div class="hint" id="dawnHint" style="display:none">아래 <b>요일은 실제로 청소하는 새벽 요일</b>입니다. 예를 들어 <b>화</b>를 고르면 <b>월요일 밤에 출발해 화요일 새벽</b>에 하는 작업이 되고, 달력에는 <b>화요일 칸 맨 위</b>에 놓이고, 월요일 밤에 나간다는 뜻으로 <b>\u201c\u25c2월밤\u201d</b>이 붙습니다.</div>
+      <div class="hint" id="dawnHint" style="display:none">아래 <b>요일은 실제로 청소하는 새벽 요일</b>입니다. 예를 들어 <b>화</b>를 고르면 <b>월요일 밤에 출발해 화요일 새벽</b>에 하는 작업이 되고, 달력에는 <b>화요일 칸 맨 위</b>에 놓이고, 전날 밤에 나간다는 뜻으로 앞에 <b>\u25c0 삼각형 표시</b>가 붙습니다.</div>
     </div>
 
     <div class="field"><label>반복</label>
