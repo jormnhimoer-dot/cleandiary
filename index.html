@@ -55,6 +55,8 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .banner.open{max-height:82dvh;overflow-y:auto}
 .banner-inner{padding:calc(var(--safe-t) + 14px) 16px 18px}
 .bn-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+/* 현장 삭제 — X를 잘못 누르지 않도록 사이를 벌려 둠 */
+.bn-del{flex:0 0 auto;margin-left:auto;margin-right:16px;font-size:12.5px;font-weight:800;padding:7px 12px;border-radius:9px;background:#fee2e2;color:#b91c1c;border:1.5px solid #fecaca}
 .bn-title{font-size:19px;font-weight:800;line-height:1.25;flex:1;word-break:break-all}
 .bn-close{width:30px;height:30px;border-radius:50%;background:#f1f5f9;color:#475569;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .bn-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -70,6 +72,8 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .bn-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
 .bn-row .k{flex:0 0 74px;color:var(--sub);font-size:13px;font-weight:600}
 .bn-row .v{flex:1;font-size:14.5px;white-space:pre-wrap;word-break:break-all}
+.bn-row .v.cpv{display:flex;align-items:center;gap:10px;white-space:normal}
+.cpbtn{flex:0 0 auto;margin-left:auto;font-size:11.5px;font-weight:800;padding:6px 11px;border-radius:8px;background:#f1f5f9;color:#334155}
 /* 현장 방문 기록 */
 .hist{margin-top:14px}
 .hist .t{font-size:12px;font-weight:800;color:var(--sub);margin-bottom:7px}
@@ -262,7 +266,7 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .sh-body{overflow-y:auto;padding:14px 16px calc(var(--safe-b) + 16px);-webkit-overflow-scrolling:touch}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:800;color:var(--sub);margin-bottom:5px}
-.field input[type=text],.field input[type=number],.field input[type=date],.field textarea,.field select{
+.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=email],.field textarea,.field select{
   width:100%;border:1px solid var(--line);background:#f8fafc;border-radius:10px;padding:11px 12px;outline:none;
 }
 .field textarea{min-height:70px;resize:vertical}
@@ -681,9 +685,14 @@ function bannerSite(id, dateStr){
         <button class="naver" onclick="openMap('${s.id}','naver')">네이버지도</button>
         <button class="tmap" onclick="openMap('${s.id}','tmap')">T맵</button>
       </div></div></div>` : '';
+  const copyRow = (label, val, fn) => String(val||'').trim()
+    ? `<div class="bn-row"><div class="k">${label}</div><div class="v cpv"><span>${esc(val)}</span><button class="cpbtn" onclick="${fn}('${s.id}')">복사</button></div></div>`
+    : '';
+  const bizHtml  = copyRow('사업자등록번호', s.bizno, 'copyBizno');
+  const mailHtml = copyRow('메일주소', s.email, 'copyEmail');
   const rows = [
     ['담당자', s.manager], ['출입', s.entry], ['주차', s.parking],
-    ['작업내용', s.work], ['특이사항', s.note]
+    ['작업내용', s.work]
   ].filter(r=>String(r[1]||'').trim())
    .map(r=>`<div class="bn-row"><div class="k">${r[0]}</div><div class="v">${esc(r[1])}</div></div>`).join('');
   const amtHtml = `<div class="bn-row"><div class="k">금액</div><div class="v">${
@@ -694,6 +703,7 @@ function bannerSite(id, dateStr){
   openBanner(`
     <div class="bn-head">
       <div class="bn-title">${bySite()?`<span style="display:inline-block;width:13px;height:13px;border-radius:4px;background:${siteColor(s).c};margin-right:7px;vertical-align:-1px"></span>`:''}${esc(s.name)}</div>
+      <button class="bn-del" onclick="delSite('${s.id}')">삭제</button>
       <button class="bn-close" onclick="closeBanner()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="bn-chips">
@@ -706,7 +716,7 @@ function bannerSite(id, dateStr){
       ${D.offdays[dateStr]?'<span class="chip">휴무</span>':''}
     </div>
     ${dawnNote}
-    <div class="bn-rows">${addrHtml}${amtHtml}${rows}</div>
+    <div class="bn-rows">${addrHtml}${amtHtml}${bizHtml}${mailHtml}${rows}</div>
     ${historyHtml(s, dateStr)}
     <div class="bn-actions">
       <button class="btn sec" onclick="skipDate('${s.id}','${dateStr}')">이 날 건너뛰기</button>
@@ -716,6 +726,14 @@ function bannerSite(id, dateStr){
   `);
 }
 
+function copyBizno(id){
+  const s = D.sites.find(x=>x.id===id); if(!s) return;
+  copyText((s.bizno||'').trim(), '사업자등록번호를 복사했습니다');
+}
+function copyEmail(id){
+  const s = D.sites.find(x=>x.id===id); if(!s) return;
+  copyText((s.email||'').trim(), '메일주소를 복사했습니다');
+}
 function copyAddr(id){
   const s = D.sites.find(x=>x.id===id); if(!s) return;
   copyText(s.address||'', '주소를 복사했습니다');
@@ -984,9 +1002,9 @@ function renderSearch(){
   panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
   calwrap.classList.add('list');
 
-  /* 현장 — 이름·짧은이름·주소·담당자·출입·주차·작업내용·특이사항 전부 */
+  /* 현장 — 이름·짧은이름·주소·담당자·출입·주차·작업내용 전부 */
   const FIELDS = [['name','현장명'],['short','표시이름'],['address','주소'],['manager','담당자'],
-                  ['entry','출입'],['parking','주차'],['work','작업내용'],['note','특이사항']];
+                  ['entry','출입'],['parking','주차'],['work','작업내용']];
   const siteHits = D.sites.map(s=>{
     const where = FIELDS.filter(([k])=>String(s[k]||'').toLowerCase().includes(ql));
     return where.length ? { s, where } : null;
@@ -1187,8 +1205,7 @@ function dayText(date){
       if((s.entry||'').trim())    L.push(`   출입 ${s.entry.trim()}`);
       if((s.parking||'').trim())  L.push(`   주차 ${s.parking.trim()}`);
       if((s.work||'').trim())     L.push(`   작업 ${s.work.trim().split('\n').join(' / ')}`);
-      if((s.note||'').trim())     L.push(`   특이 ${s.note.trim().split('\n').join(' / ')}`);
-    });
+      });
   }
   const o = onceOn(date);
   if(o){
@@ -1368,7 +1385,7 @@ function editSite(id, presetDate){
           day: pd?pd.getDate():1, nth: pd?Math.min(5,Math.floor((pd.getDate()-1)/7)+1):1,
           weekday: pd?pd.getDay():1, dates: pd?[presetDate]:[] },
     color: nextColorIdx(null),
-    startDate:'', address:'', manager:'', entry:'', parking:'', work:'', note:'',
+    startDate:'', address:'', manager:'', bizno:'', email:'', entry:'', parking:'', work:'', note:'',
     amount:0, billing:'monthly', invoice:false, paused:false, skips:[]
   };
   form.rep = Object.assign({ type:'weekly', days:[], anchor: todayYmd(), day:1, nth:1, weekday:1, dates:[] }, form.rep||{});
@@ -1434,10 +1451,13 @@ function editSite(id, presetDate){
 
     <div class="field"><label>주소</label><input type="text" id="fAddress"></div>
     <div class="field"><label>담당자</label><input type="text" id="fManager" placeholder="이름 / 연락처"></div>
+    <div class="field"><label>사업자등록번호</label><input type="text" id="fBizno" inputmode="numeric" placeholder="예) 123-45-67890">
+      <div class="hint">숫자만 눌러도 - 가 자동으로 들어갑니다.</div></div>
+    <div class="field"><label>메일주소</label><input type="email" id="fEmail" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="예) abc@company.com">
+      <div class="hint">계산서 보낼 주소를 적어두면 상세 화면에서 바로 복사할 수 있습니다.</div></div>
     <div class="field"><label>출입</label><input type="text" id="fEntry" placeholder="비밀번호, 열쇠 위치 등"></div>
     <div class="field"><label>주차</label><input type="text" id="fParking"></div>
     <div class="field"><label>작업내용</label><textarea id="fWork"></textarea></div>
-    <div class="field"><label>특이사항</label><textarea id="fNote"></textarea></div>
 
     <div class="swrow"><div><b>계산서 발행</b><div class="hint">발행하는 곳인지 표시만 합니다</div></div><div class="sw" id="fInvoice"></div></div>
     <div class="swrow"><div><b>일시 중지</b><div class="hint">달력에 표시하지 않습니다</div></div><div class="sw" id="fPaused"></div></div>
@@ -1454,13 +1474,21 @@ function bindForm(){
   const set = (sel,v)=>{ const e=$(sel); if(e) e.value = v||''; };
   set('#fName',form.name); set('#fShort',form.short); set('#fAddress',form.address); set('#fManager',form.manager);
   set('#fEntry',form.entry); set('#fParking',form.parking); set('#fWork',form.work);
-  set('#fNote',form.note); set('#fStart',form.startDate);
+  set('#fBizno',form.bizno); set('#fEmail',form.email);
+  set('#fStart',form.startDate);
   set('#fAnchor',form.rep.anchor); set('#fMday',form.rep.day);
   $('#fAmount').value = form.amount ? won(form.amount) : '';
 
-  ['fName','fShort','fAddress','fManager','fEntry','fParking','fWork','fNote'].forEach(idn=>{
+  ['fName','fShort','fAddress','fManager','fEmail','fEntry','fParking','fWork'].forEach(idn=>{
     const k = idn.slice(1).charAt(0).toLowerCase()+idn.slice(2);
     $('#'+idn).addEventListener('input', e=>{ form[k] = e.target.value; });
+  });
+  $('#fBizno').addEventListener('input', e=>{
+    const d = String(e.target.value).replace(/[^0-9]/g,'').slice(0,10);
+    let t = d;
+    if(d.length > 5) t = d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5);
+    else if(d.length > 3) t = d.slice(0,3)+'-'+d.slice(3);
+    e.target.value = t; form.bizno = t;
   });
   $('#fAmount').addEventListener('input', e=>{
     form.amount = parseAmt(e.target.value);
