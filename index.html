@@ -35,10 +35,16 @@ button{border:none;background:none;cursor:pointer;padding:0}
 }
 .topbar .title{font-weight:700;font-size:16px;letter-spacing:.3px}
 .topbar .range{font-size:12px;color:#94a3b8;margin-left:2px}
+.topbar .range.big{font-size:13.5px;color:#e2e8f0;font-weight:800}
 .topbar .sp{flex:1}
 .tb-btn{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#1e293b;color:#e2e8f0}
 .tb-btn:active{background:#334155}
 .tb-btn.wide{width:auto;padding:0 10px;font-size:12px;font-weight:600}
+.tb-btn{position:relative}
+.tb-btn.warn::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;
+  border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #1e293b}
+.bkwarn{background:#fef2f2;border:1.5px solid #fecaca;color:#991b1b;border-radius:12px;
+  padding:11px 12px;font-size:12.5px;font-weight:700;line-height:1.5;margin-bottom:12px}
 
 /* ---------- banner ---------- */
 .banner{
@@ -64,6 +70,15 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .bn-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
 .bn-row .k{flex:0 0 74px;color:var(--sub);font-size:13px;font-weight:600}
 .bn-row .v{flex:1;font-size:14.5px;white-space:pre-wrap;word-break:break-all}
+/* 현장 방문 기록 */
+.hist{margin-top:14px}
+.hist .t{font-size:12px;font-weight:800;color:var(--sub);margin-bottom:7px}
+.histrow{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.histrow .hd{flex:0 0 82px;font-size:12.5px;font-weight:800;color:#334155}
+.histrow .hd small{display:block;font-weight:700;color:#94a3b8;font-size:10.5px}
+.histrow .hm{flex:1;font-size:13px;color:#475569;white-space:pre-wrap;word-break:break-all}
+.histrow .hm.none{color:#cbd5e1}
+.histdone{font-size:10px;font-weight:800;color:#059669}
 .miniacts{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
 .miniacts button{font-size:11.5px;font-weight:800;padding:6px 11px;border-radius:8px;background:#f1f5f9;color:#334155}
 .miniacts button.kakao{background:#fef9c3;color:#854d0e}
@@ -123,6 +138,24 @@ button{border:none;background:none;cursor:pointer;padding:0}
   width:0;height:0;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;
   border-left:5px solid #38bdf8;
 }
+/* 현장별 색 모드 — --c(진한색) --cbg(연한 배경) --cink(글자색)을 인라인으로 받음 */
+.ev.sc{background:var(--cbg);color:var(--cink);border-left-color:var(--c)}
+.ev.sc.s-dawn{background:#0f172a;color:#e0f2fe;border:1px dashed var(--c);border-left:3px solid var(--c)}
+.ev.sc.s-dawn::before{border-left-color:var(--c)}
+/* 완료 — 왼쪽 색 막대만 회색으로 (칸 공간을 전혀 쓰지 않음) */
+.ev.done{border-left-color:#cbd5e1!important;opacity:.62}
+.ev.done.s-dawn{border-color:#64748b!important;border-left-color:#64748b!important;opacity:.5}
+.ev.done.s-dawn::before{border-left-color:#94a3b8!important}
+.ev.once.done{border-color:#cbd5e1!important;border-left-color:#cbd5e1!important}
+.dp-item.done .bar{background:#cbd5e1!important}
+.dp-item.done .n{color:#94a3b8}
+.cell.alldone .dnum{color:#94a3b8}
+.dp-done{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:800;padding:5px 9px;border-radius:8px;
+  background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0}
+.dp-done.on{background:#0f172a;color:#fff;border-color:#0f172a}
+.swatches{display:flex;flex-wrap:wrap;gap:7px}
+.swatches button{width:30px;height:30px;border-radius:9px;border:3px solid transparent;flex:0 0 auto}
+.swatches button.on{border-color:#0f172a;transform:scale(1.06)}
 .dp-item.dawn .n::before{
   content:"";display:inline-block;vertical-align:middle;margin:-2px 6px 0 0;
   width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;
@@ -147,6 +180,7 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .dp-sub{font-size:11.5px;color:var(--sub);font-weight:700}
 .dp-sp{flex:1}
 .dp-add{background:var(--dark);color:#fff;font-size:12px;font-weight:800;padding:7px 12px;border-radius:9px}
+.dp-share{background:#e2e8f0;color:#334155;font-size:12px;font-weight:800;padding:7px 10px;border-radius:9px}
 .dp-item{display:flex;align-items:center;gap:9px;padding:10px 2px;border-bottom:1px solid var(--line)}
 .dp-item .bar{width:4px;height:26px;border-radius:2px;flex:0 0 auto}
 .dp-item .m{flex:1;min-width:0}
@@ -182,6 +216,12 @@ button{border:none;background:none;cursor:pointer;padding:0}
 /* ---------- settlement ---------- */
 .stsec{font-size:12px;font-weight:800;color:var(--sub);padding:12px 8px 6px;display:flex;align-items:center;gap:6px}
 .strow{background:var(--card);border-radius:11px;padding:10px 12px;margin:0 6px 7px}
+.strow.late{box-shadow:inset 3px 0 0 #ef4444}
+.latetag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;
+  background:#fee2e2;color:#b91c1c;margin-left:6px;vertical-align:1px}
+.latebox{background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;margin:0 6px 10px;padding:11px 12px}
+.latebox .lt{font-size:12px;font-weight:800;color:#b91c1c;margin-bottom:6px}
+.latebox .li{font-size:13px;font-weight:700;color:#7f1d1d;padding:3px 0}
 .strow .top{display:flex;align-items:baseline;gap:8px}
 .strow .n{font-weight:800;font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .strow .a{font-weight:800;font-size:15px;white-space:nowrap}
@@ -241,6 +281,12 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .result{background:var(--card);border-radius:11px;padding:11px 12px;margin:0 6px 7px}
 .result .d{font-size:11.5px;font-weight:800;color:var(--accent);margin-bottom:3px}
 .result .x{font-size:13.5px;white-space:pre-wrap;word-break:break-all}
+.result.site{display:flex;align-items:center;gap:9px}
+.result.site .bar{width:4px;height:30px;border-radius:2px;flex:0 0 auto}
+.result.site .n{font-weight:800;font-size:14.5px}
+.result.site .w{font-size:11.5px;color:var(--sub);font-weight:700;margin-top:2px}
+.result mark{background:#fef08a;color:inherit;border-radius:3px;padding:0 1px}
+.ressec{font-size:11.5px;font-weight:800;color:var(--sub);padding:10px 10px 6px}
 .datechips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .datechip{font-size:12px;font-weight:800;padding:7px 10px;border-radius:9px;background:#e0f2fe;color:#0369a1;display:flex;align-items:center;gap:6px}
 .datechip b{color:#0284c7}
@@ -348,7 +394,7 @@ const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
 const KEY = 'cleandiary.v1';
-const DEFAULT_DATA = { sites: [], once: {}, memos: {}, offdays: {}, settle: {}, ui: { tab: 0 } };
+const DEFAULT_DATA = { sites: [], once: {}, memos: {}, offdays: {}, settle: {}, done: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
 let D = load();
 
 function load(){
@@ -356,7 +402,10 @@ function load(){
     const raw = localStorage.getItem(KEY);
     if(!raw) return structuredClone(DEFAULT_DATA);
     const p = JSON.parse(raw);
-    return Object.assign(structuredClone(DEFAULT_DATA), p);
+    const d = Object.assign(structuredClone(DEFAULT_DATA), p);
+    d.ui = Object.assign({ tab:0, colorBy:'site', lastBackup:'' }, p.ui||{});   /* ui는 통째로 덮이지 않게 병합 */
+    d.done = d.done || {};
+    return d;
   }catch(e){ return structuredClone(DEFAULT_DATA); }
 }
 let saveTimer = null;
@@ -423,6 +472,72 @@ const SLOTS = [
 const SLOT_ORDER = { morning:1, afternoon:2, evening:3, dawn:4 };
 const slotName = k => (SLOTS.find(s=>s.key===k)||SLOTS[0]).name;
 const slotHex  = k => (SLOTS.find(s=>s.key===k)||SLOTS[0]).hex;
+
+/* ---------- 현장별 색 ----------
+   c=막대/테두리 색, bg=달력 칸 배경, ink=글자색.
+   순서는 이웃끼리 최대한 안 닮게 섞어 두었습니다(자동 배정 시 구분이 잘 되도록). */
+const SITE_COLORS = [
+  { c:'#3b82f6', bg:'#eff6ff', ink:'#1e3a8a' },
+  { c:'#ef4444', bg:'#fef2f2', ink:'#7f1d1d' },
+  { c:'#22c55e', bg:'#f0fdf4', ink:'#14532d' },
+  { c:'#a855f7', bg:'#faf5ff', ink:'#581c87' },
+  { c:'#f97316', bg:'#fff7ed', ink:'#7c2d12' },
+  { c:'#06b6d4', bg:'#ecfeff', ink:'#164e63' },
+  { c:'#ec4899', bg:'#fdf2f8', ink:'#831843' },
+  { c:'#84cc16', bg:'#f7fee7', ink:'#365314' },
+  { c:'#6366f1', bg:'#eef2ff', ink:'#312e81' },
+  { c:'#eab308', bg:'#fefce8', ink:'#713f12' },
+  { c:'#14b8a6', bg:'#f0fdfa', ink:'#134e4a' },
+  { c:'#f43f5e', bg:'#fff1f2', ink:'#881337' },
+  { c:'#8b5cf6', bg:'#f5f3ff', ink:'#4c1d95' },
+  { c:'#0ea5e9', bg:'#f0f9ff', ink:'#0c4a6e' },
+  { c:'#d946ef', bg:'#fdf4ff', ink:'#701a75' },
+  { c:'#78716c', bg:'#fafaf9', ink:'#292524' }
+];
+const colorAt = i => SITE_COLORS[((i|0) % SITE_COLORS.length + SITE_COLORS.length) % SITE_COLORS.length];
+
+/* 가장 적게 쓰인 색을 고름 — 현장이 16곳을 넘어가도 겹침이 골고루 퍼집니다 */
+function nextColorIdx(skipId){
+  const used = new Array(SITE_COLORS.length).fill(0);
+  D.sites.forEach(s=>{ if(s.id!==skipId && Number.isInteger(s.color)) used[colorIdxOf(s)]++; });
+  let best = 0;
+  for(let i=1;i<used.length;i++) if(used[i] < used[best]) best = i;
+  return best;
+}
+const colorIdxOf = s => ((s && Number.isInteger(s.color) ? s.color : 0) % SITE_COLORS.length + SITE_COLORS.length) % SITE_COLORS.length;
+const siteColor  = s => colorAt(colorIdxOf(s));
+/* 색 기준이 '현장별'인지 */
+const bySite = () => D.ui.colorBy !== 'slot';
+/* 목록·패널 왼쪽 세로 막대 색 */
+const barHex = s => bySite() ? siteColor(s).c : slotHex(s.slot);
+
+/* ---------- 완료 체크 ----------
+   D.done['2026-08-12'] = { 's3':true, '__once':true }  — 날짜별로 끝낸 것만 기록 */
+function doneBox(date){ return D.done[date] || null; }
+const isDone = (date, id) => !!(D.done[date] && D.done[date][id]);
+function toggleDone(date, id){
+  const box = D.done[date] || (D.done[date] = {});
+  if(box[id]) delete box[id]; else box[id] = true;
+  if(!Object.keys(box).length) delete D.done[date];
+  save(true);
+  return isDone(date, id);
+}
+/* 그 날 할 일이 전부 끝났는지 (휴무일은 세지 않음) */
+function dayAllDone(d, s){
+  if(D.offdays[s]) return false;
+  const ids = cellItems(d).map(x=>x.s.id);
+  if(onceOn(s)) ids.push('__once');
+  return ids.length > 0 && ids.every(id=>isDone(s, id));
+}
+
+/* 예전 데이터에는 color가 없으니 한 번만 채워 넣습니다 */
+function migrateColors(){
+  let changed = false;
+  D.sites.forEach(s=>{
+    if(!Number.isInteger(s.color)){ s.color = nextColorIdx(s.id); changed = true; }
+  });
+  if(changed) save(true);
+}
 
 /* ---------- 반복 규칙 ---------- */
 /*
@@ -521,6 +636,32 @@ function openBanner(html){
 function closeBanner(){ banner.classList.remove('open'); backdrop.classList.remove('on'); }
 backdrop.addEventListener('click', closeBanner);
 
+/* ---------- 현장 방문 기록 ----------
+   반복 규칙을 과거로 되짚어서 실제로 잡혔던 날을 모읍니다. */
+function pastVisits(site, fromDate, n){
+  const out = [];
+  let d = parseYmd(fromDate);
+  for(let i=0; i<420 && out.length<n; i++){          /* 최대 약 14개월까지만 훑습니다 */
+    d = addDays(d, -1);
+    const s = ymd(d);
+    if(occursOn(site, d)) out.push(s);
+  }
+  return out;
+}
+function historyHtml(site, dateStr){
+  const days = pastVisits(site, dateStr, 6);
+  if(!days.length) return '';
+  const rows = days.map(s=>{
+    const m = (D.memos[s]||'').trim();
+    const dn = isDone(s, site.id);
+    return `<div class="histrow">
+        <div class="hd">${esc(labelDate(s))}${dn?'<small class="histdone">✔ 완료</small>':''}</div>
+        <div class="hm ${m?'':'none'}">${m ? esc(m.length>110 ? m.slice(0,110)+'…' : m) : '메모 없음'}</div>
+      </div>`;
+  }).join('');
+  return `<div class="hist"><div class="t">지난 방문 ${days.length}회 · 그날 메모</div>${rows}</div>`;
+}
+
 function bannerSite(id, dateStr){
   const s = D.sites.find(x=>x.id===id); if(!s) return;
   const addrHtml = (s.address||'').trim() ? `
@@ -543,7 +684,7 @@ function bannerSite(id, dateStr){
   const hol = holidayOf(dateStr);
   openBanner(`
     <div class="bn-head">
-      <div class="bn-title">${esc(s.name)}</div>
+      <div class="bn-title">${bySite()?`<span style="display:inline-block;width:13px;height:13px;border-radius:4px;background:${siteColor(s).c};margin-right:7px;vertical-align:-1px"></span>`:''}${esc(s.name)}</div>
       <button class="bn-close" onclick="closeBanner()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="bn-chips">
@@ -557,6 +698,7 @@ function bannerSite(id, dateStr){
     </div>
     ${dawnNote}
     <div class="bn-rows">${addrHtml}${amtHtml}${rows}</div>
+    ${historyHtml(s, dateStr)}
     <div class="bn-actions">
       <button class="btn sec" onclick="skipDate('${s.id}','${dateStr}')">이 날 건너뛰기</button>
       <button class="btn pri" onclick="editSite('${s.id}')">현장 수정</button>
@@ -623,11 +765,13 @@ function renderTop(){
   $('#tTitle').textContent = ['정기청소','일회성','그날의 메모','정산금액'][TAB];
   if(TAB===3){
     $('#tRange').textContent = `${SMY}년 ${SMM+1}월`;
+    $('#tRange').classList.add('big');
     $('#btnToday').textContent = '이번달';
   }else{
     const end = addDays(anchor, 20);
     $('#tRange').textContent =
       `${anchor.getFullYear()}. ${anchor.getMonth()+1}.${anchor.getDate()} ~ ${end.getMonth()+1}.${end.getDate()}`;
+    $('#tRange').classList.remove('big');
     $('#btnToday').textContent = '오늘';
   }
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', +b.dataset.tab===TAB));
@@ -640,7 +784,7 @@ function renderCal(){
   calwrap.classList.toggle('compact', panelOpen);
 
   let h = '';
-  if(TAB===2) h += `<div class="searchbar"><input id="qInput" type="text" placeholder="메모 검색" value="${esc(searchQ)}"></div>`;
+  if(TAB===2) h += `<div class="searchbar"><input id="qInput" type="text" placeholder="현장·주소·담당자·메모 검색" value="${esc(searchQ)}"></div>`;
   h += `<div class="dow">${DOW_KR.map(d=>`<div>${d}</div>`).join('')}</div>`;
 
   for(let w=0; w<3; w++){
@@ -650,7 +794,7 @@ function renderCal(){
       const hol = holidayOf(s), off = !!D.offdays[s];
       const cls = ['cell', s===todayYmd()?'today':'', (panelOpen && s===SEL)?'sel':'',
                    d.getDay()===0?'sun':'', d.getDay()===6?'sat':'',
-                   hol?'hol':'', off?'off':''].filter(Boolean).join(' ');
+                   hol?'hol':'', off?'off':'', (TAB===0 && dayAllDone(d,s))?'alldone':''].filter(Boolean).join(' ');
       const tag = hol ? `<div class="holname">${esc(hol)}</div>`
                       : (off ? `<div class="offname">휴무</div>` : '');
       h += `<div class="${cls}" data-act="day" data-date="${s}">
@@ -658,7 +802,13 @@ function renderCal(){
     }
     h += '</div>';
   }
-  if(TAB===0 && !panelOpen) h += `<div class="legend">
+  if(TAB===0 && !panelOpen) h += bySite()
+    ? `<div class="legend">
+      <span>색 = 현장 구분</span>
+      <span><i class="lg-dawn"></i>새벽(전날 밤 출발)</span>
+      <span><i style="background:#ecfdf5;border:1px dashed #10b981"></i>일회성</span>
+    </div>`
+    : `<div class="legend">
       <span><i style="background:#f59e0b"></i>아침</span>
       <span><i style="background:#3b82f6"></i>오후</span>
       <span><i style="background:#8b5cf6"></i>저녁</span>
@@ -686,12 +836,16 @@ function cellBody(d, s){
   const rest = list.filter(x=>x.s.slot!=='dawn');
   const o = onceOn(s);
 
-  const evHtml = ({s:st, w}) =>
-    `<div class="ev s-${st.slot}" data-act="site" data-id="${st.id}" data-date="${ymd(w)}">${esc(st.short||st.name)}</div>`;
+  const evHtml = ({s:st, w}) => {
+    const k = bySite() ? siteColor(st) : null;
+    const sty = k ? ` style="--c:${k.c};--cbg:${k.bg};--cink:${k.ink}"` : '';
+    const dn = isDone(ymd(w), st.id) ? ' done' : '';
+    return `<div class="ev s-${st.slot}${k?' sc':''}${dn}"${sty} data-act="site" data-id="${st.id}" data-date="${ymd(w)}">${esc(st.short||st.name)}</div>`;
+  };
 
   const chips = [];
   dawn.forEach(x=>chips.push(evHtml(x)));
-  if(o) chips.push(`<div class="ev once">${esc(onceLabel(o))}</div>`);
+  if(o) chips.push(`<div class="ev once${isDone(s,'__once')?' done':''}">${esc(onceLabel(o))}</div>`);
   rest.forEach(x=>chips.push(evHtml(x)));
 
   const room = maxInCell();
@@ -728,24 +882,26 @@ function renderPanel(){
     const dawnN = list0.filter(x=>x.s.slot==='dawn').length;
     const o = onceOn(SEL);
     let body = '';
-    const onceHtml = o ? `<div class="dp-item once" data-act="once" data-date="${SEL}">
+    const onceHtml = o ? `<div class="dp-item once ${isDone(SEL,'__once')?'done':''}" data-act="once" data-date="${SEL}">
         <div class="bar" style="background:var(--once)"></div>
         <div class="m"><div class="n">${esc(onceLabel(o))}</div>
-          <div class="s">일회성${o.amount?' · '+won(o.amount)+'원':''} · 눌러서 수정</div></div></div>` : '';
+          <div class="s">일회성${o.amount?' · '+won(o.amount)+'원':''} · 눌러서 수정</div></div>
+        <button class="dp-done ${isDone(SEL,'__once')?'on':''}" data-act="done" data-id="__once" data-date="${SEL}">${isDone(SEL,'__once')?'완료됨':'완료'}</button></div>` : '';
     if(!dawnN) body += onceHtml;
     body += list.length ? list.map(({s,w},i)=>`${(dawnN && i===dawnN) ? onceHtml : ''}
-        <div class="dp-item ${s.slot==='dawn'?'dawn':''}" data-act="site" data-id="${s.id}" data-date="${ymd(w)}">
-          <div class="bar" style="background:${slotHex(s.slot)}"></div>
+        <div class="dp-item ${s.slot==='dawn'?'dawn':''} ${isDone(ymd(w),s.id)?'done':''}" data-act="site" data-id="${s.id}" data-date="${ymd(w)}">
+          <div class="bar" style="background:${barHex(s)}"></div>
           <div class="m"><div class="n">${esc(s.name)}</div>
             <div class="s">${s.slot==='dawn'
                 ? `<b>새벽</b> 작업 — 전날 ${DOW_KR[addDays(w,-1).getDay()]}요일 밤에 출발`
                 : slotName(s.slot)} · ${esc(repText(s))}</div>
           </div>
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          <button class="dp-done ${isDone(ymd(w),s.id)?'on':''}" data-act="done" data-id="${s.id}" data-date="${ymd(w)}">${isDone(ymd(w),s.id)?'완료됨':'완료'}</button>
         </div>`).join('')
       : (o ? '' : `<div class="empty">이 날 잡힌 일정이 없습니다</div>`);
     if(dawnN && dawnN === list.length) body += onceHtml;
     daypanel.innerHTML = head + `<div class="dp-sub">${list.length}곳</div>
+      <button class="dp-share" onclick="shareDay('${SEL}')">공유</button>
       <button class="dp-add" data-act="newsite">＋ 현장</button>${X}</div>` + body + offRow;
     return;
   }
@@ -783,7 +939,7 @@ function renderPanel(){
   // TAB 2 : 메모
   const list = sitesOn(d);
   const visited = list.length
-    ? list.map(s=>`<div class="dp-item"><div class="bar" style="background:${slotHex(s.slot)}"></div>
+    ? list.map(s=>`<div class="dp-item"><div class="bar" style="background:${barHex(s)}"></div>
         <div class="m"><div class="n">${esc(s.name)}</div></div><div class="s">${slotName(s.slot)}</div></div>`).join('')
     : `<div class="hint">이 날 등록된 현장이 없습니다</div>`;
   daypanel.innerHTML = head + `${X}</div>
@@ -798,20 +954,71 @@ function renderPanel(){
   });
 }
 
+/* 검색어 부분을 노란색으로 */
+function hl(text, q){
+  const t = esc(text), needle = esc(q);
+  if(!needle) return t;
+  const i = t.toLowerCase().indexOf(needle.toLowerCase());
+  if(i < 0) return t;
+  return t.slice(0,i) + '<mark>' + t.slice(i, i+needle.length) + '</mark>' + t.slice(i+needle.length);
+}
+/* 메모가 길면 검색어 주변만 잘라서 보여줍니다 */
+function excerpt(v, q){
+  const i = v.toLowerCase().indexOf(q.toLowerCase());
+  if(i < 0) return v.length>140 ? v.slice(0,140)+'…' : v;
+  const from = Math.max(0, i-50), to = Math.min(v.length, i+q.length+90);
+  return (from?'…':'') + v.slice(from,to) + (to<v.length?'…':'');
+}
+
 function renderSearch(){
-  const q = searchQ.trim();
+  const q = searchQ.trim(), ql = q.toLowerCase();
   panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
   calwrap.classList.add('list');
-  const hits = Object.entries(D.memos)
-    .filter(([k,v]) => (v||'').includes(q))
+
+  /* 현장 — 이름·짧은이름·주소·담당자·출입·주차·작업내용·특이사항 전부 */
+  const FIELDS = [['name','현장명'],['short','표시이름'],['address','주소'],['manager','담당자'],
+                  ['entry','출입'],['parking','주차'],['work','작업내용'],['note','특이사항']];
+  const siteHits = D.sites.map(s=>{
+    const where = FIELDS.filter(([k])=>String(s[k]||'').toLowerCase().includes(ql));
+    return where.length ? { s, where } : null;
+  }).filter(Boolean)
+    .sort((a,b)=> a.s.name.localeCompare(b.s.name,'ko'));
+
+  const memoHits = Object.entries(D.memos)
+    .filter(([k,v]) => (v||'').toLowerCase().includes(ql))
     .sort((a,b)=> b[0].localeCompare(a[0]));
-  calwrap.innerHTML =
-    `<div class="searchbar"><input id="qInput" type="text" placeholder="메모 검색" value="${esc(searchQ)}"></div>` +
-    (hits.length ? hits.map(([k,v])=>`
+
+  let out = '';
+  if(siteHits.length){
+    out += `<div class="ressec">현장 ${siteHits.length}곳</div>`;
+    out += siteHits.map(({s,where})=>{
+      const first = where[0];
+      const val = String(s[first[0]]||'');
+      const sub = first[0]==='name' || first[0]==='short'
+        ? `${slotName(s.slot)} · ${repText(s)}`
+        : `${first[1]} · ${hl(val.length>60?val.slice(0,60)+'…':val, q)}`;
+      return `<div class="result site" data-act="gosite" data-id="${s.id}">
+          <div class="bar" style="background:${barHex(s)}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="n">${hl(s.name, q)}${s.paused?' <span class="chip">중지</span>':''}</div>
+            <div class="w">${sub}</div>
+          </div>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>`;
+    }).join('');
+  }
+  if(memoHits.length){
+    out += `<div class="ressec">메모 ${memoHits.length}건</div>`;
+    out += memoHits.map(([k,v])=>`
       <div class="result" data-act="gomemo" data-date="${k}">
         <div class="d">${esc(labelDate(k))}</div>
-        <div class="x">${esc(v.length>140 ? v.slice(0,140)+'…' : v)}</div>
-      </div>`).join('') : `<div class="empty">"${esc(q)}" 검색 결과가 없습니다</div>`);
+        <div class="x">${hl(excerpt(v, q), q)}</div>
+      </div>`).join('');
+  }
+
+  calwrap.innerHTML =
+    `<div class="searchbar"><input id="qInput" type="text" placeholder="현장·주소·담당자·메모 검색" value="${esc(searchQ)}"></div>` +
+    (out || `<div class="empty">"${esc(q)}" 검색 결과가 없습니다</div>`);
   const inp = $('#qInput');
   inp.addEventListener('input', e=>{ searchQ = e.target.value; searchQ.trim() ? renderSearch() : render(); });
   inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
@@ -825,6 +1032,33 @@ function renderSearch(){
    - 일회성: 건별로 전부 더하되 정기 합계와 섞지 않음
    ========================================================= */
 function settleKey(){ return `${SMY}-${pad(SMM+1)}`; }
+/* ---------- 밀린 미수금 ----------
+   앱을 쓰기 시작한 달(D.ui.since)보다 이전은 세지 않습니다 — 안 쓰던 때가 미수로 잡히면 안 되니까요. */
+function ensureSince(){
+  if(!D.ui.since){
+    const n = new Date();
+    D.ui.since = `${n.getFullYear()}-${pad(n.getMonth()+1)}`;
+    save(true);
+  }
+  return D.ui.since;
+}
+function overdueOf(name){
+  const since = ensureSince();
+  const res = { months:0, amount:0, labels:[] };
+  for(let i=1; i<=12; i++){
+    const d = new Date(SMY, SMM - i, 1);
+    const key = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+    if(key < since) break;
+    const st = D.settle[key];
+    if(st && st.paid && st.paid[name]) continue;
+    const row = regularRows(d.getFullYear(), d.getMonth()).find(r=>r.name===name);
+    if(!row || !row.total) continue;
+    res.months++; res.amount += row.total; res.labels.push(`${d.getMonth()+1}월`);
+  }
+  res.labels.reverse();
+  return res;
+}
+
 function settleStore(){
   const k = settleKey();
   D.settle[k] = D.settle[k] || {};
@@ -833,12 +1067,13 @@ function settleStore(){
   s.oinv = s.oinv || {}; s.opaid = s.opaid || {};
   return s;
 }
-function regularRows(){
-  const dim = daysInMonth(SMY, SMM);
+function regularRows(Y, M){
+  const y = (Y===undefined) ? SMY : Y, m = (M===undefined) ? SMM : M;
+  const dim = daysInMonth(y, m);
   const map = new Map();          // 현장 이름 기준으로 묶음
   D.sites.forEach(s=>{
     let cnt = 0;
-    for(let i=1; i<=dim; i++) if(occursOn(s, new Date(SMY, SMM, i))) cnt++;
+    for(let i=1; i<=dim; i++) if(occursOn(s, new Date(y, m, i))) cnt++;
     if(!cnt) return;
     const k = (s.name||'').trim() || '(이름 없음)';
     const g = map.get(k) || { name:k, cnt:0, amount:0, billing:'monthly', invoice:false, slots:new Set() };
@@ -879,16 +1114,27 @@ function renderSettle(){
       <button class="ck paid ${paidOn?'on':''}" data-act="ck" data-kind="paid" data-scope="${scope}" data-k="${esc(k)}">입금 받음</button>
     </div>`;
 
+  const late = reg.map(r=>({ r, od: overdueOf(r.name) })).filter(x=>x.od.months>0);
+
   let h = '';
+  if(late.length){
+    h += `<div class="latebox"><div class="lt">입금이 밀린 곳 ${late.length}곳</div>` +
+      late.sort((a,b)=>b.od.amount-a.od.amount).map(x=>
+        `<div class="li">${esc(x.r.name)} — ${x.od.labels.join('·')} 미입금 · ${won(x.od.amount)}원</div>`).join('') +
+      `<div class="hint" style="margin-top:7px">지난달들 중 <b>입금 받음</b>이 안 눌린 달을 모은 것입니다. 화살표로 그 달에 가서 표시해 주세요.</div></div>`;
+  }
   h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 현장 이름당 1줄</span></div>`;
-  h += reg.length ? reg.map(r=>`
-      <div class="strow">
-        <div class="top"><div class="n">${esc(r.name)}</div><div class="a">${won(r.total)}원</div></div>
+  h += reg.length ? reg.map(r=>{
+    const od = overdueOf(r.name);
+    return `
+      <div class="strow ${od.months?'late':''}">
+        <div class="top"><div class="n">${esc(r.name)}${od.months?`<span class="latetag">${od.months}달 밀림</span>`:''}</div><div class="a">${won(r.total)}원</div></div>
         <div class="s">${r.billing==='per'
             ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
             : `월 정액 · 이번 달 ${r.cnt}회 방문`}${r.amount?'':' · 금액 미입력'}</div>
         ${ckHtml('site', r.name, !!st.inv[r.name], !!st.paid[r.name])}
-      </div>`).join('')
+      </div>`;
+    }).join('')
     : `<div class="empty">이 달에 잡힌 정기청소가 없습니다</div>`;
   h += `<div class="sttot"><span>정기 합계</span><span>${won(regTotal)}원</span></div>`;
 
@@ -915,6 +1161,44 @@ function renderSettle(){
 }
 
 /* 정산 내용을 글로 복사 — 현장 목록까지 전부 들어감 */
+/* ---------- 하루 일정 공유 ---------- */
+function dayText(date){
+  const d = parseYmd(date);
+  const L = [];
+  L.push(`${labelDate(date)}${holidayOf(date)?' · '+holidayOf(date):''}${D.offdays[date]?' · 휴무':''}`);
+  L.push('');
+  const list0 = cellItems(d);
+  const list = [...list0.filter(x=>x.s.slot==='dawn'), ...list0.filter(x=>x.s.slot!=='dawn')];
+  if(list.length){
+    list.forEach(({s})=>{
+      const mark = isDone(date, s.id) ? ' ✔완료' : '';
+      L.push(`■ ${s.name} — ${s.slot==='dawn' ? '새벽(전날 밤 출발)' : slotName(s.slot)}${mark}`);
+      if((s.address||'').trim())  L.push(`   ${s.address.trim()}`);
+      if((s.manager||'').trim())  L.push(`   담당 ${s.manager.trim()}`);
+      if((s.entry||'').trim())    L.push(`   출입 ${s.entry.trim()}`);
+      if((s.parking||'').trim())  L.push(`   주차 ${s.parking.trim()}`);
+      if((s.work||'').trim())     L.push(`   작업 ${s.work.trim().split('\n').join(' / ')}`);
+      if((s.note||'').trim())     L.push(`   특이 ${s.note.trim().split('\n').join(' / ')}`);
+    });
+  }
+  const o = onceOn(date);
+  if(o){
+    L.push(`■ ${onceLabel(o)} — 일회성${o.amount?' · '+won(o.amount)+'원':''}${isDone(date,'__once')?' ✔완료':''}`);
+    if((o.note||'').trim()) L.push(`   ${o.note.trim().split('\n').join(' / ')}`);
+  }
+  if(!list.length && !o) L.push('잡힌 일정이 없습니다');
+  const m = (D.memos[date]||'').trim();
+  if(m){ L.push(''); L.push('[메모]'); L.push(m); }
+  return L.join('\n');
+}
+function shareDay(date){
+  const t = dayText(date);
+  if(navigator.share){
+    navigator.share({ title:`${labelDate(date)} 일정`, text:t })
+      .then(()=>{}, ()=>copyText(t, '일정을 복사했습니다'));
+  } else copyText(t, '일정을 복사했습니다');
+}
+
 function copySettle(){
   const st = settleStore();
   const reg = regularRows(), onc = onceRows();
@@ -987,9 +1271,17 @@ function onAct(e){
     }, 250);
     return;
   }
+  if(act==='done'){
+    e.stopPropagation();
+    const on = toggleDone(date, el.dataset.id);
+    if(navigator.vibrate) navigator.vibrate(on ? 18 : 8);
+    renderCal(); renderPanel();
+    return;
+  }
   if(act==='newsite'){ editSite(null, SEL); return; }
   if(act==='closepanel'){ panelOpen = false; renderCal(); renderPanel(); return; }
   if(act==='once'){ TAB = 1; D.ui.tab = 1; save(); render(); return; }
+  if(act==='gosite'){ editSite(el.dataset.id); return; }
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; anchor = startOfWeek(parseYmd(date)); render(); return; }
   if(act==='day'){
     const now = Date.now();
@@ -1025,7 +1317,7 @@ function openSiteList(){
     .sort((a,b)=> (SLOT_ORDER[a.slot]-SLOT_ORDER[b.slot]) || a.name.localeCompare(b.name,'ko'))
     .map(s=>`
       <div class="siteitem" onclick="editSite('${s.id}')">
-        <div class="bar" style="background:${slotHex(s.slot)}"></div>
+        <div class="bar" style="background:${barHex(s)}"></div>
         <div class="m">
           <div class="n">${esc(s.name)}${s.paused?' <span class="chip">중지</span>':''}</div>
           <div class="d">${slotName(s.slot)} · ${esc(repText(s))} · ${s.amount?won(s.amount)+'원':'금액 없음'}${s.billing==='per'?'/회':''}</div>
@@ -1047,6 +1339,7 @@ function editSite(id, presetDate){
     rep:{ type:'weekly', days: pd?[pd.getDay()]:[], anchor: presetDate||todayYmd(),
           day: pd?pd.getDate():1, nth: pd?Math.min(5,Math.floor((pd.getDate()-1)/7)+1):1,
           weekday: pd?pd.getDay():1, dates: pd?[presetDate]:[] },
+    color: nextColorIdx(null),
     startDate:'', address:'', manager:'', entry:'', parking:'', work:'', note:'',
     amount:0, billing:'monthly', invoice:false, paused:false, skips:[]
   };
@@ -1060,6 +1353,10 @@ function editSite(id, presetDate){
     <div class="field"><label>현장명 *</label><input type="text" id="fName" placeholder="예) OO빌딩 2층"></div>
     <div class="field"><label>달력 표시 이름 (짧게)</label><input type="text" id="fShort" maxlength="6" placeholder="예) OO빌">
       <div class="hint">달력 칸은 좁아서 3~4글자만 보입니다. 비워두면 현장명 앞부분이 표시됩니다.</div></div>
+
+    <div class="field"><label>달력 색상</label>
+      <div class="swatches" id="fColor">${SITE_COLORS.map((k,i)=>`<button data-v="${i}" style="background:${k.bg};box-shadow:inset 0 0 0 4px ${k.c}"></button>`).join('')}</div>
+      <div class="hint">새 현장은 안 겹치는 색이 <b>자동으로</b> 배정됩니다. 바꾸고 싶을 때만 눌러 주세요.</div></div>
 
     <div class="field"><label>시간대</label>
       <div class="seg" id="fSlot">${SLOTS.map(x=>`<button data-v="${x.key}">${x.name}</button>`).join('')}</div>
@@ -1178,6 +1475,16 @@ function bindForm(){
   const sw = (sel,key)=>{ const e=$(sel); e.classList.toggle('on', !!form[key]); e.onclick=()=>{ form[key]=!form[key]; e.classList.toggle('on', form[key]); }; };
   sw('#fInvoice','invoice'); sw('#fPaused','paused');
 
+  if(!Number.isInteger(form.color)) form.color = nextColorIdx(form.id);
+  const cw = $('#fColor');
+  if(cw){
+    const paint = () => cw.querySelectorAll('button').forEach(b2=>b2.classList.toggle('on', +b2.dataset.v === colorIdxOf(form)));
+    cw.querySelectorAll('button').forEach(b2=>{
+      b2.addEventListener('click', ()=>{ form.color = +b2.dataset.v; paint(); });
+    });
+    paint();
+  }
+
   drawDates(); repVis(); billHint();
 }
 function billHint(){
@@ -1225,12 +1532,16 @@ function saveSite(){
   delete form.price;
   const i = D.sites.findIndex(x=>x.id===form.id);
   if(i>=0) D.sites[i] = form; else D.sites.push(form);
-  save(true); closeSheet(); closeBanner(); render(); toast('저장했습니다');
+  save(true); closeSheet(); closeBanner();
+  panelOpen = false;                 /* 아래 상세 패널까지 닫고 달력으로 */
+  render(); toast('저장했습니다');
 }
 function delSite(id){
   if(!confirm('이 현장을 삭제할까요? 달력에서 모두 사라집니다.')) return;
   D.sites = D.sites.filter(x=>x.id!==id);
-  save(true); closeSheet(); closeBanner(); render(); toast('삭제했습니다');
+  save(true); closeSheet(); closeBanner();
+  panelOpen = false;
+  render(); toast('삭제했습니다');
 }
 
 /* ---------- 휴가 기간 ---------- */
@@ -1266,7 +1577,15 @@ function openMenu(){
   closeBanner();
   const cnt = D.sites.length, oc = Object.keys(D.once).length, mc = Object.keys(D.memos).length;
   openSheet('설정', `
+    ${backupOverdue() ? `<div class="bkwarn">${daysSinceBackup()===null
+        ? '아직 <b>백업을 한 번도 안 하셨습니다.</b> 이 앱의 데이터는 이 브라우저 안에만 있어서, 방문기록을 지우거나 폰을 바꾸면 전부 사라집니다.'
+        : `마지막 백업이 <b>${daysSinceBackup()}일 전</b>입니다. 그 사이 입력하신 내용은 아직 어디에도 저장돼 있지 않습니다.`}<br>
+      아래 <b>백업 파일 내보내기</b>를 한 번 눌러 주세요.</div>` : ''}
     <button class="btn pri" style="margin-bottom:10px" onclick="openSiteList()">현장 관리 (${cnt}곳)</button>
+    <div class="swrow" style="margin-bottom:10px">
+      <div><b>달력 색을 현장별로</b><div class="hint">끄면 예전처럼 시간대(아침·오후·저녁) 색으로 보입니다</div></div>
+      <div class="sw ${bySite()?'on':''}" onclick="toggleColorBy(this)"></div>
+    </div>
     <button class="btn sec" style="margin-bottom:10px" onclick="openVacation()">휴가 기간 지정</button>
     <button class="btn sec" style="margin-bottom:10px" onclick="exportData()">백업 파일 내보내기</button>
     <button class="btn sec" style="margin-bottom:10px" onclick="document.getElementById('importFile').click()">백업 파일 불러오기</button>
@@ -1298,6 +1617,23 @@ function openMenu(){
     });
   });
 }
+/* ---------- 백업 알림 ---------- */
+function markBackup(){ D.ui.lastBackup = todayYmd(); save(true); refreshBackupBadge(); }
+function daysSinceBackup(){
+  const b = D.ui.lastBackup;
+  if(!b) return null;                                   /* 한 번도 안 했음 */
+  return Math.max(0, Math.round((parseYmd(todayYmd()) - parseYmd(b)) / 86400000));
+}
+/* 데이터가 있는데 30일 넘게 백업을 안 했으면 경고 */
+function backupOverdue(){
+  if(!D.sites.length && !Object.keys(D.once).length && !Object.keys(D.memos).length) return false;
+  const n = daysSinceBackup();
+  return n === null || n >= 30;
+}
+function refreshBackupBadge(){
+  const b = $('#btnMenu'); if(b) b.classList.toggle('warn', backupOverdue());
+}
+
 const backupName = () => `cleandiary-backup-${todayYmd()}.json`;
 const backupJson = () => JSON.stringify(D, null, 2);
 
@@ -1320,12 +1656,12 @@ function shareBackup(){
     const file = new File([json], name, { type:'application/json' });
     if(navigator.canShare && navigator.canShare({ files:[file] })){
       navigator.share({ files:[file], title:name })
-        .then(()=>toast('내보냈습니다'))
+        .then(()=>{ markBackup(); toast('내보냈습니다'); })
         .catch(()=>{});
       return;
     }
     if(navigator.share){
-      navigator.share({ title:name, text:json }).catch(()=>{});
+      navigator.share({ title:name, text:json }).then(()=>markBackup(), ()=>{});
       return;
     }
   }catch(e){}
@@ -1340,10 +1676,11 @@ function downloadBackup(){
     a.href = url; a.download = name; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    markBackup();
     toast('저장 목록을 확인해 보세요');
   }catch(e){ toast('다운로드가 막혀 있습니다. 글로 복사를 써주세요'); }
 }
-function copyBackup(){ copyText(backupJson(), '백업 내용을 복사했습니다'); }
+function copyBackup(){ copyText(backupJson(), '백업 내용을 복사했습니다'); markBackup(); }
 
 function openImportText(){
   openSheet('붙여넣기로 되살리기', `
@@ -1389,6 +1726,42 @@ document.querySelectorAll('.tab').forEach(b=>{
   b.onclick = ()=>{ TAB = +b.dataset.tab; D.ui.tab = TAB; save(); searchQ=''; panelOpen=false; closeBanner(); render(); };
 });
 
+/* ---------- 길게 눌러 완료 토글 ---------- */
+let lpTimer = null, lpFired = false;
+function lpTarget(t){
+  const ev = t.closest && t.closest('.ev'); if(!ev) return null;
+  const cell = ev.closest('.cell'); if(!cell) return null;
+  const date = ev.dataset.date || cell.dataset.date;
+  const id = ev.dataset.id || (ev.classList.contains('once') ? '__once' : null);
+  return (date && id) ? { date, id, ev } : null;
+}
+function lpStart(e){
+  lpFired = false;                 /* 새로 누를 때마다 초기화 — 안 하면 다음 탭이 씹힙니다 */
+  if(TAB !== 0) return;
+  const t = lpTarget(e.target); if(!t) return;
+  clearTimeout(lpTimer);
+  lpTimer = setTimeout(()=>{
+    lpFired = true;
+    const on = toggleDone(t.date, t.id);
+    if(navigator.vibrate) navigator.vibrate(on ? 18 : 8);
+    clearTimeout(siteTapTimer); siteTapTimer = null; siteTapKey = null;   /* 배너가 뒤늦게 안 뜨게 */
+    renderCal(); renderPanel();
+    const nm = t.id==='__once' ? '일회성' : ((D.sites.find(x=>x.id===t.id)||{}).name || '');
+    toast(on ? `${nm} 완료` : `${nm} 완료 취소`);
+  }, 500);
+}
+function lpCancel(){ clearTimeout(lpTimer); lpTimer = null; }
+calwrap.addEventListener('touchstart', lpStart, {passive:true});
+calwrap.addEventListener('touchmove',  lpCancel, {passive:true});
+calwrap.addEventListener('touchend',   lpCancel, {passive:true});
+calwrap.addEventListener('mousedown',  lpStart);
+calwrap.addEventListener('mouseup',    lpCancel);
+calwrap.addEventListener('mouseleave', lpCancel);
+/* 길게 눌러서 처리했으면 그 다음 클릭은 삼킵니다 */
+calwrap.addEventListener('click', e=>{ if(lpFired){ e.stopPropagation(); e.preventDefault(); lpFired = false; } }, true);
+/* 길게 누를 때 뜨는 브라우저 메뉴 막기 */
+calwrap.addEventListener('contextmenu', e=>{ if(lpTarget(e.target)) e.preventDefault(); });
+
 /* 좌우 스와이프로 이동 */
 let tx=0, ty=0;
 calwrap.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
@@ -1415,8 +1788,17 @@ calwrap.addEventListener('touchend', e=>{
   }
 })();
 
+function toggleColorBy(el){
+  D.ui.colorBy = bySite() ? 'slot' : 'site';
+  el.classList.toggle('on', bySite());
+  save(true); render();
+  toast(bySite() ? '현장별 색으로 표시합니다' : '시간대 색으로 표시합니다');
+}
+
 window.addEventListener('beforeunload', ()=>save(true));
+migrateColors();
 render();
+refreshBackupBadge();
 </script>
 </body>
 </html>
