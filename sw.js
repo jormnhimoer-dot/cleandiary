@@ -1,9 +1,9 @@
-/* cleandiary service worker — 오프라인에서도 열리도록 앱 파일을 캐시합니다. */
+/* cleandiary service worker — network-first, cache fallback */
 const CACHE = 'cleandiary-v1';
-const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html']).catch(()=>{})));
 });
 
 self.addEventListener('activate', e => {
@@ -15,14 +15,17 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  if (new URL(req.url).origin !== self.location.origin) return;
+
   e.respondWith(
-    fetch(e.request)
+    fetch(req)
       .then(res => {
         const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
         return res;
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
+      .catch(() => caches.match(req).then(hit => hit || caches.match('./index.html')))
   );
 });
