@@ -1726,8 +1726,13 @@ function onAct(e){
     const now = Date.now();
     if(lastTap.date===date && now-lastTap.t < 500){
       lastTap = {}; clearTimeout(dayTapTimer); dayTapTimer = null;
-      SEL = date; closeBanner(); editSite(null, date);
-      toast(DOW_KR[parseYmd(date).getDay()]+'요일로 새 현장 등록');
+      SEL = date; closeBanner();
+      if(TAB===0){                       /* 정기청소에서만 새 현장 등록 */
+        editSite(null, date);
+        toast(DOW_KR[parseYmd(date).getDay()]+'요일로 새 현장 등록');
+      }else{                             /* 스케줄·가계부는 그 날 입력창만 엽니다 */
+        panelOpen = true; renderCal(); renderPanel();
+      }
       return;
     }
     lastTap = { date, t: now };
