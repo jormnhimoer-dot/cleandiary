@@ -144,12 +144,12 @@ button{border:none;background:none;cursor:pointer;padding:0}
 }
 /* 현장별 색 모드 — --c(진한색) --cbg(연한 배경) --cink(글자색)을 인라인으로 받음 */
 .ev.sc{background:var(--cbg);color:var(--cink);border-left-color:var(--c)}
-.ev.sc.s-dawn{background:var(--cdk);color:#fff;border:1px dashed rgba(255,255,255,.7);border-left:3px solid rgba(0,0,0,.3)}
-.ev.sc.s-dawn::before{border-left-color:#fff}
-.ev.sc.done.s-dawn{background:#94a3b8!important;color:#fff!important;opacity:.55;
-  border-color:rgba(255,255,255,.6)!important;border-left-color:rgba(0,0,0,.25)!important}
-.ev.sc.done.s-dawn::before{border-left-color:#fff!important}
+.ev.sc.s-dawn{background:var(--cbg);color:var(--cink);border:1px dashed var(--c);border-left:3px solid var(--c)}
+.ev.sc.s-dawn::before{border-left-color:var(--c)}
 /* 완료 — 왼쪽 색 막대만 회색으로 (칸 공간을 전혀 쓰지 않음) */
+.ev.skip{background:#f1f5f9!important;color:#94a3b8!important;border-color:#cbd5e1!important;
+  border-left-color:#cbd5e1!important;text-decoration:line-through;text-decoration-thickness:1.5px;opacity:.9}
+.ev.skip::before{border-left-color:#cbd5e1!important}
 .ev.done{border-left-color:#cbd5e1!important;opacity:.62}
 .ev.done.s-dawn{border-color:#64748b!important;border-left-color:#64748b!important;opacity:.5}
 .ev.done.s-dawn::before{border-left-color:#94a3b8!important}
@@ -157,9 +157,23 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .dp-item.done .bar{background:#cbd5e1!important}
 .dp-item.done .n{color:#94a3b8}
 .cell.alldone .dnum{color:#94a3b8}
-.dp-done{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:800;padding:5px 9px;border-radius:8px;
+.skipdays{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.skipdays span{font-size:12px;font-weight:800;padding:7px 10px;border-radius:8px;background:#fff7ed;color:#b45309;border:1px solid #fed7aa;line-height:1.5}
+.skipdays span b{color:#9a3412}
+.skiptag{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;background:#fff7ed;color:#b45309}
+.kids{margin:7px 0 2px;padding:7px 9px;background:#f8fafc;border-radius:9px}
+.kid{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#475569;padding:2px 0}
+.kid b{color:#1e293b}
+.dp-edit,.dp-undo{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:800;padding:5px 9px;border-radius:8px}
+.dp-edit{background:#eef2ff;color:#4338ca;border:1.5px solid #e0e7ff}
+.dp-undo{background:#fff7ed;color:#b45309;border:1.5px solid #fed7aa}
+.dp-item.dawn .dp-edit{background:rgba(255,255,255,.16);color:#e0f2fe;border-color:rgba(255,255,255,.35)}
+.dp-item.skip .n{color:#94a3b8;text-decoration:line-through}
+.dp-item.skip .bar{background:#cbd5e1!important}
+.dp-done{flex:0 0 auto;font-size:11px;font-weight:800;padding:5px 9px;border-radius:8px;
   background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0}
 .dp-done.on{background:#0f172a;color:#fff;border-color:#0f172a}
+.dp-done.off{opacity:.35}
 .swatches{display:flex;flex-wrap:wrap;gap:7px}
 .swatches button{width:30px;height:30px;border-radius:9px;border:3px solid transparent;flex:0 0 auto}
 .swatches button.on{border-color:#0f172a;transform:scale(1.06)}
@@ -560,12 +574,13 @@ function migrateColors(){
       | { type:'monthly_nth',  nth:2, weekday:3 }
       | { type:'dates',        dates:['YYYY-MM-DD', ...] }   // 지정 날짜
 */
+const isSkipped = (site, date) => !!(site.skips && site.skips.includes(ymd(date)));
+/* 규칙상 잡히는 날인지 (건너뛴 날도 true — 달력에는 그대로 보이고 표시만 달라집니다) */
 function occursOn(site, date){
   if(site.paused) return false;
   const s = ymd(date);
   if(site.startDate && s < site.startDate) return false;
   if(site.endDate   && s > site.endDate)   return false;
-  if(site.skips && site.skips.includes(s)) return false;
 
   const r = site.rep || {};
   const dow = date.getDay();
@@ -609,6 +624,7 @@ function sitesOn(date){
   return D.sites.filter(s=>occursOn(s,date))
     .sort((a,b)=> (CLOCK_ORDER[a.slot]-CLOCK_ORDER[b.slot]) || a.name.localeCompare(b.name,'ko'));
 }
+const countsOn = (site, date) => occursOn(site, date) && !isSkipped(site, date);
 function cellItems(d){
   return D.sites.filter(s=>occursOn(s,d)).map(s=>({s,w:d}))
     .sort((a,b)=> (CLOCK_ORDER[a.s.slot]-CLOCK_ORDER[b.s.slot]) || a.s.name.localeCompare(b.s.name,'ko'));
@@ -866,7 +882,7 @@ function cellBody(d, s){
   const evHtml = ({s:st, w}) => {
     const k = bySite() ? siteColor(st) : null;
     const sty = k ? ` style="--c:${k.c};--cbg:${k.bg};--cink:${k.ink};--cdk:${k.dk||k.c}"` : '';
-    const dn = isDone(ymd(w), st.id) ? ' done' : '';
+    const dn = (isDone(ymd(w), st.id) ? ' done' : '') + (isSkipped(st, w) ? ' skip' : '');
     return `<div class="ev s-${st.slot}${k?' sc':''}${dn}"${sty} data-act="site" data-id="${st.id}" data-date="${ymd(w)}">${esc(st.short||st.name)}</div>`;
   };
 
@@ -916,14 +932,17 @@ function renderPanel(){
         <button class="dp-done ${isDone(SEL,'__once')?'on':''}" data-act="done" data-id="__once" data-date="${SEL}">${isDone(SEL,'__once')?'완료됨':'완료'}</button></div>` : '';
     if(!dawnN) body += onceHtml;
     body += list.length ? list.map(({s,w},i)=>`${(dawnN && i===dawnN) ? onceHtml : ''}
-        <div class="dp-item ${s.slot==='dawn'?'dawn':''} ${isDone(ymd(w),s.id)?'done':''}" data-act="site" data-id="${s.id}" data-date="${ymd(w)}">
+        <div class="dp-item ${s.slot==='dawn'?'dawn':''} ${isDone(ymd(w),s.id)?'done':''} ${isSkipped(s,w)?'skip':''}" data-act="site" data-id="${s.id}" data-date="${ymd(w)}">
           <div class="bar" style="background:${barHex(s)}"></div>
           <div class="m"><div class="n">${esc(s.name)}</div>
             <div class="s">${s.slot==='dawn'
                 ? `<b>새벽</b> 작업 — 전날 ${DOW_KR[addDays(w,-1).getDay()]}요일 밤에 출발`
-                : slotName(s.slot)} · ${esc(repText(s))}</div>
+                : slotName(s.slot)} · ${esc(repText(s))}${isSkipped(s,w)?' · <b style="color:#b45309">건너뛴 날</b>':''}</div>
           </div>
-          <button class="dp-done ${isDone(ymd(w),s.id)?'on':''}" data-act="done" data-id="${s.id}" data-date="${ymd(w)}">${isDone(ymd(w),s.id)?'완료됨':'완료'}</button>
+          ${isSkipped(s,w)
+            ? `<button class="dp-undo" data-act="unskip" data-id="${s.id}" data-date="${ymd(w)}">되돌리기</button>`
+            : `<button class="dp-edit" data-act="gosite" data-id="${s.id}">수정</button>`}
+          <button class="dp-done ${isDone(ymd(w),s.id)?'on':''} ${isSkipped(s,w)?'off':''}" data-act="done" data-id="${s.id}" data-date="${ymd(w)}">${isDone(ymd(w),s.id)?'완료됨':'완료'}</button>
         </div>`).join('')
       : (o ? '' : `<div class="empty">이 날 잡힌 일정이 없습니다</div>`);
     if(dawnN && dawnN === list.length) body += onceHtml;
@@ -1100,21 +1119,36 @@ function regularRows(Y, M){
   const map = new Map();          // 현장 이름 기준으로 묶음
   D.sites.forEach(s=>{
     let cnt = 0;
-    for(let i=1; i<=dim; i++) if(occursOn(s, new Date(y, m, i))) cnt++;
-    if(!cnt) return;
+    let skipN = 0; const skipDs = [];
+    for(let i=1; i<=dim; i++){
+      const dt = new Date(y, m, i);
+      if(!occursOn(s, dt)) continue;
+      if(isSkipped(s, dt)){ skipN++; skipDs.push(ymd(dt)); } else cnt++;
+    }
+    if(!cnt && !skipN) return;
     const k = (s.name||'').trim() || '(이름 없음)';
-    const g = map.get(k) || { name:k, cnt:0, amount:0, billing:'monthly', invoice:false, slots:new Set() };
-    g.cnt += cnt;
+    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim() };
+    g.cnt += cnt; g.skip = (g.skip||0) + skipN; g.skipDs = (g.skipDs||[]).concat(skipDs);
     g.amount = Math.max(g.amount, parseAmt(s.amount));
     if(s.billing === 'per') g.billing = 'per';
     if(s.invoice) g.invoice = true;
     g.slots.add(s.slot);
     map.set(k, g);
   });
-  return [...map.values()].map(g=>({
+  const rows = [...map.values()].map(g=>({
     ...g,
     total: g.billing === 'per' ? g.amount * g.cnt : g.amount
-  })).sort((a,b)=> b.total - a.total || a.name.localeCompare(b.name,'ko'));
+  }));
+  /* 거래처가 적힌 현장끼리 한 줄로 묶음 */
+  const gm = new Map();
+  rows.forEach(r=>{
+    const c = (r.client||'').trim();
+    if(!c){ gm.set('@'+r.name, r); return; }
+    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], amount:0, billing:'group', invoice:false, slots:new Set() };
+    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); if(r.invoice) g.invoice = true;
+    gm.set('#'+c, g);
+  });
+  return [...gm.values()].sort((a,b)=> b.total - a.total || a.name.localeCompare(b.name,'ko'));
 }
 function onceRows(){
   const p = settleKey();
@@ -1124,6 +1158,20 @@ function onceRows(){
     .sort((a,b)=> a.date.localeCompare(b.date));
 }
 
+const openSkips = new Set();
+/* 건너뛴 날짜를 짧게 — 8월 3·4·5일 형태 */
+function skipDaysText(list){
+  const by = new Map();
+  [...new Set(list)].sort().forEach(d=>{
+    const [y,m,dd] = d.split('-').map(Number);
+    const k = `${y}-${m}`;
+    (by.get(k) || by.set(k,[]).get(k)).push(dd);
+  });
+  return [...by.entries()].map(([k,ds])=>{
+    const m = k.split('-')[1];
+    return `<span>${m}월 ${ds.join('·')}일 <b>${ds.length}회</b></span>`;
+  }).join('');
+}
 function renderSettle(){
   panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
   calwrap.classList.remove('compact'); calwrap.classList.add('list');
@@ -1150,15 +1198,19 @@ function renderSettle(){
         `<div class="li">${esc(x.r.name)} — ${x.od.labels.join('·')} 미입금 · ${won(x.od.amount)}원</div>`).join('') +
       `<div class="hint" style="margin-top:7px">지난달들 중 <b>입금 받음</b>이 안 눌린 달을 모은 것입니다. 화살표로 그 달에 가서 표시해 주세요.</div></div>`;
   }
-  h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 현장 이름당 1줄</span></div>`;
+  h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 거래처로 묶임</span></div>`;
   h += reg.length ? reg.map(r=>{
     const od = overdueOf(r.name);
     return `
       <div class="strow ${od.months?'late':''}">
         <div class="top"><div class="n">${esc(r.name)}${od.months?`<span class="latetag">${od.months}달 밀림</span>`:''}</div><div class="a">${won(r.total)}원</div></div>
-        <div class="s">${r.billing==='per'
-            ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
-            : `월 정액 · 이번 달 ${r.cnt}회 방문`}${r.amount?'':' · 금액 미입력'}</div>
+        <div class="s">${r.kids
+            ? `현장 ${r.kids.length}곳 묶음 · 이번 달 ${r.cnt}회 방문`
+            : (r.billing==='per'
+              ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
+              : `월 정액 · 이번 달 ${r.cnt}회 방문`) + (r.amount?'':' · 금액 미입력')}${r.skip?`<button class="skiptag" data-act="skipdays" data-k="${esc(r.name)}">건너뜀 ${r.skip}회 ▾</button>`:''}</div>
+        ${r.skip && openSkips.has(r.name) ? `<div class="skipdays">${skipDaysText(r.skipDs)}</div>` : ''}
+        ${r.kids ? `<div class="kids">${r.kids.map(k=>`<div class="kid"><span>${esc(k.name)}${k.skip?` <button class="skiptag" data-act="skipdays" data-k="${esc(k.name)}">건너뜀 ${k.skip}회 ▾</button>`:''}</span><b>${won(k.total)}원</b></div>${k.skip && openSkips.has(k.name) ? `<div class="skipdays">${skipDaysText(k.skipDs)}</div>` : ''}`).join('')}</div>` : ''}
         ${ckHtml('site', r.name, !!st.inv[r.name], !!st.paid[r.name])}
       </div>`;
     }).join('')
@@ -1225,6 +1277,16 @@ function shareDay(date){
   } else copyText(t, '일정을 복사했습니다');
 }
 
+/* 복사용 — 8월 3·4·5일 형태의 글 */
+function skipDaysPlain(list){
+  const by = new Map();
+  [...new Set(list||[])].sort().forEach(d=>{
+    const [y,m,dd] = d.split('-').map(Number);
+    const k = String(m);
+    (by.get(k) || by.set(k,[]).get(k)).push(dd);
+  });
+  return [...by.entries()].map(([m,ds])=>`${m}월 ${ds.join('·')}일`).join(', ');
+}
 function copySettle(){
   const st = settleStore();
   const reg = regularRows(), onc = onceRows();
@@ -1240,8 +1302,10 @@ function copySettle(){
   L.push('');
   L.push('■ 정기청소');
   if(reg.length) reg.forEach(r=>{
-    const detail = r.billing==='per' ? ` (회당 ${won(r.amount)} × ${r.cnt}회)` : '';
+    const detail = r.kids ? ` (현장 ${r.kids.length}곳)` : (r.billing==='per' ? ` (회당 ${won(r.amount)} × ${r.cnt}회)` : '');
     L.push(`- ${r.name}${detail} : ${won(r.total)}원${mark(st.inv[r.name], st.paid[r.name])}`);
+    if(r.kids) r.kids.forEach(k=>L.push(`   · ${k.name} : ${won(k.total)}원${k.skip?` (건너뜀 ${k.skip}회)`:''}`));
+    else if(r.skip) L.push(`   · 건너뜀 ${r.skip}회 — ${skipDaysPlain(r.skipDs)}`);
   });
   else L.push('- 내역 없음');
   L.push(`정기 합계 : ${won(regTotal)}원`);
@@ -1262,7 +1326,7 @@ function copySettle(){
 }
 
 /* ---------- 클릭 위임 ---------- */
-let lastTap = {}, siteTapTimer = null, siteTapKey = null;
+let lastTap = {}, siteTapTimer = null, siteTapKey = null, dayTapTimer = null;
 function onAct(e){
   const el = e.target.closest('[data-act]'); if(!el) return;
   const act = el.dataset.act, date = el.dataset.date;
@@ -1294,14 +1358,27 @@ function onAct(e){
     siteTapKey = key;
     siteTapTimer = setTimeout(()=>{
       siteTapTimer = null; siteTapKey = null; bannerSite(id, date);
-    }, 250);
+    }, 400);
     return;
   }
   if(act==='done'){
     e.stopPropagation();
+    const sk = D.sites.find(x=>x.id===el.dataset.id);
+    if(sk && isSkipped(sk, parseYmd(date))){ toast('건너뛴 날은 완료로 표시할 수 없습니다'); return; }
     const on = toggleDone(date, el.dataset.id);
     if(navigator.vibrate) navigator.vibrate(on ? 18 : 8);
     renderCal(); renderPanel();
+    return;
+  }
+  if(act==='skipdays'){
+    e.stopPropagation();
+    const k = el.dataset.k;
+    if(openSkips.has(k)) openSkips.delete(k); else openSkips.add(k);
+    renderSettle(); return;
+  }
+  if(act==='unskip'){
+    const st2 = D.sites.find(x=>x.id===el.dataset.id);
+    if(st2 && st2.skips){ st2.skips = st2.skips.filter(x=>x!==date); save(true); render(); toast('건너뛰기를 되돌렸습니다'); }
     return;
   }
   if(act==='newsite'){ editSite(null, SEL); return; }
@@ -1311,14 +1388,19 @@ function onAct(e){
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; anchor = startOfWeek(parseYmd(date)); render(); return; }
   if(act==='day'){
     const now = Date.now();
-    if(lastTap.date===date && now-lastTap.t < 400){
-      lastTap = {}; SEL = date; closeBanner(); editSite(null, date);
+    if(lastTap.date===date && now-lastTap.t < 500){
+      lastTap = {}; clearTimeout(dayTapTimer); dayTapTimer = null;
+      SEL = date; closeBanner(); editSite(null, date);
       toast(DOW_KR[parseYmd(date).getDay()]+'요일로 새 현장 등록');
       return;
     }
     lastTap = { date, t: now };
-    panelOpen = !(panelOpen && SEL===date);
-    SEL = date; closeBanner(); renderCal(); renderPanel();
+    clearTimeout(dayTapTimer);
+    dayTapTimer = setTimeout(()=>{
+      dayTapTimer = null;
+      panelOpen = !(panelOpen && SEL===date);
+      SEL = date; closeBanner(); renderCal(); renderPanel();
+    }, 260);
   }
 }
 calwrap.addEventListener('click', onAct);
@@ -1385,7 +1467,7 @@ function editSite(id, presetDate){
           day: pd?pd.getDate():1, nth: pd?Math.min(5,Math.floor((pd.getDate()-1)/7)+1):1,
           weekday: pd?pd.getDay():1, dates: pd?[presetDate]:[] },
     color: nextColorIdx(null),
-    startDate:'', address:'', manager:'', bizno:'', email:'', entry:'', parking:'', work:'', note:'',
+    startDate:'', address:'', manager:'', bizno:'', email:'', client:'', entry:'', parking:'', work:'', note:'',
     amount:0, billing:'monthly', invoice:false, paused:false, skips:[]
   };
   form.rep = Object.assign({ type:'weekly', days:[], anchor: todayYmd(), day:1, nth:1, weekday:1, dates:[] }, form.rep||{});
@@ -1439,6 +1521,11 @@ function editSite(id, presetDate){
 
     <div class="field"><label>시작일 (비워두면 제한 없음)</label><input type="date" id="fStart"></div>
 
+    <div class="field"><label>거래처 (같은 이름끼리 정산에서 묶임)</label>
+      <input type="text" id="fClient" list="clientList" placeholder="예) OO관리단 — 비워두면 이 현장만 따로 정산">
+      <datalist id="clientList">${[...new Set(D.sites.map(x=>(x.client||'').trim()).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+      <div class="hint">여러 현장을 한 업체에서 받는 경우 같은 거래처 이름을 적어 두세요. 달력은 그대로 현장별로 나옵니다.</div></div>
+
     <div class="field"><label>금액 (숫자만)</label><input type="text" id="fAmount" inputmode="numeric" placeholder="예) 600000">
       <div class="hint">정산금액 탭에서 이 금액으로 합산됩니다.</div></div>
     <div class="field"><label>정산 방식</label>
@@ -1474,12 +1561,12 @@ function bindForm(){
   const set = (sel,v)=>{ const e=$(sel); if(e) e.value = v||''; };
   set('#fName',form.name); set('#fShort',form.short); set('#fAddress',form.address); set('#fManager',form.manager);
   set('#fEntry',form.entry); set('#fParking',form.parking); set('#fWork',form.work);
-  set('#fBizno',form.bizno); set('#fEmail',form.email);
+  set('#fBizno',form.bizno); set('#fEmail',form.email); set('#fClient',form.client);
   set('#fStart',form.startDate);
   set('#fAnchor',form.rep.anchor); set('#fMday',form.rep.day);
   $('#fAmount').value = form.amount ? won(form.amount) : '';
 
-  ['fName','fShort','fAddress','fManager','fEmail','fEntry','fParking','fWork'].forEach(idn=>{
+  ['fName','fShort','fAddress','fManager','fEmail','fClient','fEntry','fParking','fWork'].forEach(idn=>{
     const k = idn.slice(1).charAt(0).toLowerCase()+idn.slice(2);
     $('#'+idn).addEventListener('input', e=>{ form[k] = e.target.value; });
   });
@@ -1798,6 +1885,11 @@ function lpStart(e){
   clearTimeout(lpTimer);
   lpTimer = setTimeout(()=>{
     lpFired = true;
+    const sk = D.sites.find(x=>x.id===t.id);
+    if(sk && isSkipped(sk, parseYmd(t.date))){
+      clearTimeout(siteTapTimer); siteTapTimer = null; siteTapKey = null;
+      toast('건너뛴 날은 완료로 표시할 수 없습니다'); return;
+    }
     const on = toggleDone(t.date, t.id);
     if(navigator.vibrate) navigator.vibrate(on ? 18 : 8);
     clearTimeout(siteTapTimer); siteTapTimer = null; siteTapKey = null;   /* 배너가 뒤늦게 안 뜨게 */
