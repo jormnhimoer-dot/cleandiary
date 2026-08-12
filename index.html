@@ -121,6 +121,10 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .stgrand.net{background:#047857}
 .ordbtns{margin-left:auto;display:flex;flex-direction:column;gap:3px;flex:0 0 auto}
 .ordbtns button{width:30px;height:21px;border-radius:6px;background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-size:11px;font-weight:800}
+.draghandle{flex:0 0 auto;margin-left:6px;width:38px;height:44px;border-radius:10px;background:#e2e8f0;color:#475569;
+  font-size:18px;font-weight:800;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none}
+.dp-item.dragging{background:#eef2ff;border-radius:10px;box-shadow:0 8px 18px rgba(15,23,42,.16);opacity:.95}
+.daypanel.dragging{overflow:hidden}
 .searchbar{display:flex;gap:7px;align-items:center}
 .sbx{flex:0 0 auto;font-size:12px;font-weight:800;padding:9px 12px;border-radius:10px;background:#f1f5f9;color:#475569}
 .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;position:sticky;top:-8px;z-index:6;background:var(--bg);padding:4px 0 3px}
@@ -227,12 +231,12 @@ button{border:none;background:none;cursor:pointer;padding:0}
   box-shadow:0 -8px 24px rgba(15,23,42,.14);animation:slideup .18s ease;
 }
 @keyframes slideup{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}
-.dp-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.dp-date{font-size:15px;font-weight:800}
-.dp-sub{font-size:11.5px;color:var(--sub);font-weight:700}
+.dp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:nowrap}
+.dp-date{font-size:15px;font-weight:800;white-space:nowrap;flex:0 0 auto}
+.dp-sub{font-size:11.5px;color:var(--sub);font-weight:700;white-space:nowrap;flex:0 0 auto}
 .dp-sp{flex:1}
-.dp-add{background:var(--dark);color:#fff;font-size:12px;font-weight:800;padding:7px 12px;border-radius:9px}
-.dp-share{background:#e2e8f0;color:#334155;font-size:12px;font-weight:800;padding:7px 10px;border-radius:9px}
+.dp-add{background:var(--dark);color:#fff;font-size:11.5px;font-weight:800;padding:7px 9px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
+.dp-share{background:#e2e8f0;color:#334155;font-size:11.5px;font-weight:800;padding:7px 9px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
 .dp-item{display:flex;align-items:center;gap:9px;padding:10px 2px;border-bottom:1px solid var(--line)}
 .dp-item .bar{width:4px;height:26px;border-radius:2px;flex:0 0 auto}
 .dp-item .m{flex:1;min-width:0}
@@ -1095,7 +1099,8 @@ function renderPanel(){
           </div>
           ${ORDER_MODE
             ? `<div class="ordbtns"><button data-act="moveup" data-id="${s.id}" data-date="${SEL}">▲</button>
-               <button data-act="movedn" data-id="${s.id}" data-date="${SEL}">▼</button></div>`
+               <button data-act="movedn" data-id="${s.id}" data-date="${SEL}">▼</button></div>
+               <button class="draghandle" data-act="drag" aria-label="끌어서 옮기기">≡</button>`
             : (isSkipped(s,w)
               ? `<button class="dp-undo" data-act="unskip" data-id="${s.id}" data-date="${ymd(w)}">되돌리기</button>`
               : `<button class="dp-edit" data-act="gosite" data-id="${s.id}">수정</button>`)
@@ -1103,10 +1108,10 @@ function renderPanel(){
         </div>`).join('')
       : (o ? '' : `<div class="empty">이 날 잡힌 일정이 없습니다</div>`);
     daypanel.innerHTML = head + `<div class="dp-sub">${list.length}곳</div>
-      <button class="dp-share" data-act="ordermode">${ORDER_MODE?'순서 끝':'순서'}</button>
+      <button class="dp-share" data-act="ordermode" style="${ORDER_MODE?'background:#0f172a;color:#fff':''}">순서</button>
       <button class="dp-share" onclick="shareDay('${SEL}')">공유</button>
       <button class="dp-add" data-act="newsite">＋ 현장</button>${X}</div>`
-      + (ORDER_MODE ? `<div class="hint" style="margin:0 0 8px">▲▼로 이 요일(${DOW_KR[d.getDay()]}요일)의 순서를 바꿉니다. 다른 요일 순서는 그대로입니다.</div>` : '')
+      + (ORDER_MODE ? `<div class="hint" style="margin:0 0 8px">≡ 를 잡고 <b>끌어서</b> 옮기거나 ▲▼로 한 칸씩 옮깁니다. ${DOW_KR[d.getDay()]}요일 순서만 바뀌고 다른 요일은 그대로입니다. 다 하셨으면 <b>순서</b>를 다시 누르세요.</div>` : '')
       + body + offRow;
     return;
   }
@@ -1661,6 +1666,7 @@ function onAct(e){
     if(st2 && st2.skips){ st2.skips = st2.skips.filter(x=>x!==date); save(true); render(); toast('건너뛰기를 되돌렸습니다'); }
     return;
   }
+  if(act==='drag'){ return; }                       /* 손잡이는 끌기 전용 */
   if(act==='ordermode'){ ORDER_MODE = !ORDER_MODE; renderPanel(); return; }
   if(act==='moveup'){ moveOrder(date, el.dataset.id, -1); return; }
   if(act==='movedn'){ moveOrder(date, el.dataset.id,  1); return; }
@@ -2244,6 +2250,49 @@ document.querySelectorAll('.tab').forEach(b=>{
     if(TAB!==3) scrollToDate(SEL || todayYmd());
   };
 });
+
+/* ---------- 순서 모드에서 끌어서 옮기기 ---------- */
+let dragEl = null, dragMoved = false;
+function dragItems(){ return [...daypanel.querySelectorAll('.dp-item[data-id]')]; }
+daypanel.addEventListener('pointerdown', e=>{
+  const h = e.target.closest('.draghandle');
+  if(!h || !ORDER_MODE) return;
+  dragEl = h.closest('.dp-item'); if(!dragEl){ return; }
+  dragMoved = false;
+  e.preventDefault();
+  try{ h.setPointerCapture(e.pointerId); }catch(err){}
+  dragEl.classList.add('dragging');
+  daypanel.classList.add('dragging');
+  if(navigator.vibrate) navigator.vibrate(10);
+});
+daypanel.addEventListener('pointermove', e=>{
+  if(!dragEl) return;
+  e.preventDefault();
+  const y = e.clientY;
+  for(const it of dragItems()){
+    if(it === dragEl) continue;
+    const r = it.getBoundingClientRect();
+    const mid = r.top + r.height/2;
+    const pos = it.compareDocumentPosition(dragEl);
+    if(y < mid && (pos & Node.DOCUMENT_POSITION_FOLLOWING)){ it.parentNode.insertBefore(dragEl, it); dragMoved = true; break; }
+    if(y > mid && (pos & Node.DOCUMENT_POSITION_PRECEDING)){ it.parentNode.insertBefore(dragEl, it.nextSibling); dragMoved = true; break; }
+  }
+});
+function endDrag(){
+  if(!dragEl) return;
+  dragEl.classList.remove('dragging');
+  daypanel.classList.remove('dragging');
+  dragEl = null;
+  if(!dragMoved) return;
+  const ids = dragItems().map(x=>x.dataset.id).filter(Boolean);
+  const dow = parseYmd(SEL).getDay();
+  const old = (D.order[dow] || []).filter(x=>!ids.includes(x));
+  D.order[dow] = ids.concat(old);
+  save(true); renderCal(); renderPanel();
+  toast('순서를 바꿨습니다');
+}
+daypanel.addEventListener('pointerup', endDrag);
+daypanel.addEventListener('pointercancel', endDrag);
 
 /* ---------- 길게 눌러 완료 토글 ---------- */
 let lpTimer = null, lpFired = false;
