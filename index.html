@@ -209,6 +209,9 @@ button{border:none;background:none;cursor:pointer;padding:0}
   background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0}
 .dp-done.on{background:#0f172a;color:#fff;border-color:#0f172a}
 .dp-done.off{opacity:.35}
+.hourbox{margin-top:4px;font-size:12px;font-weight:700;color:#64748b}
+.hourbox:empty{display:none}
+.hourbox b{color:#0284c7;font-size:13.5px;font-weight:800}
 .swatches{display:flex;flex-wrap:wrap;gap:7px}
 .swatches button{width:30px;height:30px;border-radius:9px;border:3px solid transparent;flex:0 0 auto}
 .swatches button.on{border-color:#0f172a;transform:scale(1.06)}
@@ -1879,7 +1882,8 @@ function editSite(id, presetDate){
         <input type="number" id="fHour" min="0" max="24" inputmode="numeric" placeholder="시간" style="flex:1">
         <input type="number" id="fMin" min="0" max="59" step="5" inputmode="numeric" placeholder="분" style="flex:1">
       </div>
-      <div class="hint" id="hourHint"></div></div>
+      <div class="hint" id="hourHint"></div>
+      <div class="hourbox" id="hourBox"></div></div>
 
     <div class="field"><label>정산 방식</label>
       <div class="seg" id="fBilling">
@@ -1943,7 +1947,7 @@ function bindForm(){
   $('#fAmount').addEventListener('input', e=>{
     form.amount = parseAmt(e.target.value);
     e.target.value = form.amount ? won(form.amount) : '';
-    billHint();
+    billHint(); hourHint();
   });
   $('#fStart').addEventListener('change', e=>{ form.startDate = e.target.value; });
   $('#fAnchor').addEventListener('change', e=>{ form.rep.anchor = e.target.value; });
@@ -1965,7 +1969,7 @@ function bindForm(){
   segPick('#fRep', form.rep.type, v=>{ form.rep.type = v; repVis(); });
   segPick('#fNth', form.rep.nth, v=>{ form.rep.nth = +v; });
   segPick('#fNthDow', form.rep.weekday, v=>{ form.rep.weekday = +v; });
-  segPick('#fBilling', form.billing, v=>{ form.billing = v; billHint(); });
+  segPick('#fBilling', form.billing, v=>{ form.billing = v; billHint(); hourHint(); });
 
   const dw = $('#fDows');
   dw.querySelectorAll('button').forEach(b=>{
@@ -1994,12 +1998,24 @@ function bindForm(){
   drawDates(); repVis(); billHint(); hourHint();
 }
 function hourHint(){
-  const e = $('#hourHint'); if(!e) return;
+  const e = $('#hourHint'), box = $('#hourBox'); if(!e) return;
   const m = +form.mins || 0;
-  if(!m){ e.textContent = '비워두면 시간당 계산을 하지 않습니다.'; return; }
-  const per = form.billing==='per' ? parseAmt(form.amount) : 0;
+  if(!m){
+    e.textContent = '비워두면 시간당 계산을 하지 않습니다.';
+    if(box) box.innerHTML = '';
+    return;
+  }
   const txt = `1회 ${Math.floor(m/60)?Math.floor(m/60)+'시간 ':''}${m%60?m%60+'분':''}`.trim();
-  e.innerHTML = `${txt} — 정산금액 탭에서 그 달 방문 횟수로 <b>시간당 얼마</b>인지 계산해 보여줍니다.`;
+  e.innerHTML = `${txt} — 정산금액 탭에도 시간당 금액이 함께 나옵니다.`;
+  if(!box) return;
+  const now = new Date(), y = now.getFullYear(), mo = now.getMonth();
+  const dim = daysInMonth(y, mo);
+  let cnt = 0;
+  for(let i=1; i<=dim; i++) if(countsOn(form, new Date(y, mo, i))) cnt++;
+  const amt = parseAmt(form.amount);
+  const hrs = (form.billing==='per' ? m : cnt*m) / 60;
+  const hourly = (amt && hrs) ? Math.round(amt / hrs) : 0;
+  box.innerHTML = hourly ? `시간당 <b>${won(hourly)}원</b>` : '';
 }
 function billHint(){
   const e = $('#billHint'); if(!e) return;
