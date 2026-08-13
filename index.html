@@ -199,6 +199,9 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .kids{margin:7px 0 2px;padding:7px 9px;background:#f8fafc;border-radius:9px}
 .kid{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#475569;padding:2px 0}
 .kid b{color:#1e293b}
+/* 두 번 누르면 현장 수정으로 갑니다 — 눌러도 된다는 표시로 밑줄 */
+.kidname{border-bottom:1.5px dashed #cbd5e1;padding-bottom:1px;-webkit-user-select:none;user-select:none}
+.kidname.tapped{background:#e0e7ff;border-radius:5px;border-bottom-color:#6366f1}
 .dp-edit,.dp-undo{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:800;padding:5px 9px;border-radius:8px}
 .dp-edit{background:#eef2ff;color:#4338ca;border:1.5px solid #e0e7ff}
 .dp-undo{background:#fff7ed;color:#b45309;border:1.5px solid #fed7aa}
@@ -240,6 +243,9 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .dp-sp{flex:1}
 .dp-add{background:var(--dark);color:#fff;font-size:11.5px;font-weight:800;padding:7px 9px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
 .dp-share{background:#e2e8f0;color:#334155;font-size:11.5px;font-weight:800;padding:7px 9px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
+.dp-del{background:#fef2f2;color:#b91c1c;border:1.5px solid #fecaca;font-size:11.5px;font-weight:800;padding:6px 9px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
+.dp-head .bn-close{margin-left:10px}          /* 저장·삭제와 X를 멀찍이 떨어뜨립니다 */
+.dp-item.editing{background:#eef2ff;border-radius:9px}
 .dp-item{display:flex;align-items:center;gap:9px;padding:10px 2px;border-bottom:1px solid var(--line)}
 .dp-item .bar{width:4px;height:26px;border-radius:2px;flex:0 0 auto}
 .dp-item .m{flex:1;min-width:0}
@@ -362,6 +368,27 @@ button{border:none;background:none;cursor:pointer;padding:0}
 }
 .toast.on{opacity:1}
 .autosave{font-size:11px;color:#10b981;font-weight:700;height:14px}
+
+/* ---------- 끌어서 옮길 때 "잡혔다"는 표시 (다른 규칙을 확실히 덮도록 맨 뒤에 둡니다) ---------- */
+.daypanel.dragging .dp-item:not(.dragging){opacity:.55}
+.dp-item.dragging,
+.dp-item.dawn.dragging,
+.dp-item.once.dragging{
+  background:#e0e7ff !important;
+  color:#1e1b4b !important;
+  border:2px solid #4f46e5 !important;
+  border-radius:12px !important;
+  box-shadow:0 14px 28px rgba(49,46,129,.35) !important;
+  transform:scale(1.04);
+  position:relative; z-index:5; opacity:1 !important;
+}
+.dp-item.dragging .n,
+.dp-item.dragging .s{ color:#312e81 !important; }
+.dp-item.dragging .draghandle{
+  background:#4338ca !important; color:#fff !important;
+  transform:scale(1.1); box-shadow:0 3px 8px rgba(67,56,202,.5);
+}
+.draghandle{transition:background .12s, color .12s, transform .12s}
 </style>
 </head>
 <body>
@@ -508,14 +535,36 @@ const wonS = n => (Math.abs(n) >= 1000000) ? (Math.round(n/10000)).toLocaleStrin
     s.rep = s.rep || {};
     if(!Array.isArray(s.rep.dates)) s.rep.dates = [];
   });
+  /* 일회성은 예전에 '하루 한 건'이었습니다 → 하루 여러 건(배열)으로 옮깁니다 */
+  const fixOne = x => {
+    x.id = x.id || uid();
+    x.place = x.place||''; x.note = x.note||''; x.amount = parseAmt(x.amount);
+    x.manager = x.manager||''; x.entry = x.entry||''; x.parking = x.parking||''; x.work = x.work||'';
+    return x;
+  };
   Object.keys(D.once||{}).forEach(k=>{
-    const v = D.once[k];
+    let v = D.once[k];
     if(typeof v === 'string'){
       const lines = v.split('\n').map(x=>x.trim()).filter(Boolean);
       if(!lines.length){ delete D.once[k]; return; }
-      D.once[k] = { place: lines[0]||'', amount: 0, note: lines.slice(1).join('\n') };
-    }else if(v && typeof v === 'object'){
-      v.place = v.place||''; v.note = v.note||''; v.amount = parseAmt(v.amount);
+      v = { place: lines[0]||'', amount: 0, note: lines.slice(1).join('\n') };
+    }
+    if(Array.isArray(v)){
+      const arr = v.filter(x=>x && typeof x==='object').map(fixOne);
+      if(arr.length) D.once[k] = arr; else delete D.once[k];
+      return;
+    }
+    if(v && typeof v === 'object'){
+      const one = fixOne(v);
+      D.once[k] = [one];
+      /* 정산 탭의 계산서·입금 체크는 날짜로 저장돼 있었으니 건별 열쇠로 옮깁니다 */
+      const nk = k + '#' + one.id;
+      Object.keys(D.settle||{}).forEach(mk=>{
+        ['oinv','opaid'].forEach(box=>{
+          const b = D.settle[mk] && D.settle[mk][box];
+          if(b && b[k]){ b[nk] = true; delete b[k]; }
+        });
+      });
     }else delete D.once[k];
   });
 })();
@@ -594,8 +643,7 @@ function toggleDone(date, id){
 /* 그 날 할 일이 전부 끝났는지 (휴무일은 세지 않음) */
 function dayAllDone(d, s){
   if(D.offdays[s]) return false;
-  const ids = cellItems(d).map(x=>x.s.id);
-  if(onceOn(s)) ids.push('__once');
+  const ids = cellItems(d).map(x=>x.s.id);      /* 완료 표시는 정기청소만 셉니다 */
   return ids.length > 0 && ids.every(id=>isDone(s, id));
 }
 
@@ -690,12 +738,17 @@ function moveOrder(dateStr, id, dir){
   D.order[dow] = cur.concat(old);
   save(true); renderCal(); renderPanel();
 }
-function onceOn(dateStr){
-  const o = D.once[dateStr];
-  if(!o) return null;
-  if(!(o.place||'').trim() && !(o.note||'').trim() && !o.amount) return null;
-  return o;
+/* ---------- 일회성 청소 — 하루에 여러 건 ---------- */
+const onceEmpty = o => !(o.place||'').trim() && !(o.note||'').trim() && !(o.work||'').trim()
+  && !(o.manager||'').trim() && !(o.entry||'').trim() && !(o.parking||'').trim() && !parseAmt(o.amount);
+function onceList(dateStr){
+  const a = D.once[dateStr];
+  if(!Array.isArray(a)) return [];
+  return a.filter(o => o && !onceEmpty(o));
 }
+const onceOn  = dateStr => onceList(dateStr)[0] || null;     /* 있는지만 볼 때 */
+const onceKey = (dateStr, o) => dateStr + '#' + o.id;        /* 정산 체크용 열쇠 */
+function onceCount(){ return Object.keys(D.once||{}).reduce((a,k)=>a+onceList(k).length, 0); }
 const EXP_CATS = [{k:'fuel',n:'주유비',c:'#f97316'},{k:'food',n:'식비',c:'#22c55e'},
                   {k:'sup',n:'용품',c:'#6366f1'},{k:'etc',n:'기타',c:'#94a3b8'}];
 const expCat  = k => EXP_CATS.find(x=>x.k===k) || EXP_CATS[3];
@@ -729,7 +782,7 @@ const calName = st => (st.name||'').trim().slice(0,3);
 const onceLabel = o => (o.place||'').trim() || (o.note||'').split('\n')[0].trim() || '일회성';
 
 /* ---------- 상태 ---------- */
-let TAB = D.ui.tab || 0;
+let TAB = 0;                    /* 앱을 열면 언제나 정기청소부터 */
 let anchor = startOfWeek(new Date());
 /* 위아래로 이어지는 달력 — 오늘 기준 앞뒤 6개월(26주) */
 const WEEKS_BACK = 26, WEEKS_FWD = 26;
@@ -937,6 +990,7 @@ let LAST_CAL_TAB = null;
 let SEARCH_ON = false;
 let SCHED_MODE = 'once';        /* 스케줄 탭 — once | personal */
 let PERS_EDIT = null;           /* 수정 중인 개인 일정 id */
+let ONCE_EDIT = null;           /* 수정 중인 일회성 id (null이면 새로 추가) */
 let EXP_CAT = 'fuel';           /* 가계부 입력 항목 */
 let EXP_EDIT = null;
 let EXP_FILTER = 'all';
@@ -993,6 +1047,23 @@ function renderCal(){
   if(q) q.addEventListener('input', e=>{ searchQ = e.target.value; renderCal(); });
 }
 
+/* 달력이 자리를 다 잡은 뒤에 한 번 더 맞춥니다.
+   칸 높이를 화면에 맞춰 다시 재는 과정 때문에 한 번만 옮기면 몇 주씩 어긋납니다. */
+let scrollFix = 0;
+let VIEW_WK = null;             /* 지금 화면에 보이는 주 (탭을 오갈 때 자리 유지용) */
+function settleScroll(dateStr){
+  const token = ++scrollFix;
+  const go = ()=>{
+    if(token !== scrollFix) return;                 /* 사용자가 손을 대면 중단 */
+    if(TAB===3 || SEARCH_ON) return;
+    scrollToDate(dateStr);
+  };
+  go();
+  requestAnimationFrame(()=>{ go(); requestAnimationFrame(go); });
+  setTimeout(go, 130);
+  setTimeout(go, 380);
+}
+
 /* 그 날짜가 들어 있는 주를 맨 위로 */
 function scrollToDate(dateStr, smooth){
   const wk = ymd(startOfWeek(parseYmd(dateStr)));
@@ -1013,6 +1084,7 @@ calwrap.addEventListener('scroll', ()=>{
     for(const el of weeks){
       if(el.offsetTop + el.offsetHeight > top + 30){
         const d = parseYmd(el.dataset.wk);
+        VIEW_WK = el.dataset.wk;                /* 지금 보고 있는 주 — 탭을 오갈 때 그대로 돌아옵니다 */
         const mid = addDays(d, 3);              /* 그 주 한가운데 날짜의 달 */
         if(mid.getMonth() !== anchor.getMonth() || mid.getFullYear() !== anchor.getFullYear()){
           anchor = new Date(mid.getFullYear(), mid.getMonth(), 1); renderTop();
@@ -1033,11 +1105,21 @@ function cellBody(d, s){
     return out;
   }
   if(TAB===1){                                   /* 스케줄 — 일회성 + 개인 */
-    const o = onceOn(s), ps = persOn(s);
-    let out = '';
-    if(o) out += `<div class="ev once">${esc(onceLabel(o))}</div>` + (o.amount ? `<div class="evmore">${won(o.amount)}</div>` : '');
-    out += ps.slice(0,3).map(x=>`<div class="ev pers">${esc((x.title||'일정').slice(0,4))}</div>`).join('');
-    if(ps.length > 3) out += `<div class="evmore">+${ps.length-3}</div>`;
+    const os = onceList(s), ps = persOn(s);
+    const room = maxInCell();
+    let out = '', used = 0;
+    for(const o of os){
+      if(used >= room) break;
+      out += `<div class="ev once">${esc(onceLabel(o))}</div>`; used++;
+    }
+    /* 일회성이 딱 한 건일 때만 금액을 같이 보여줍니다 */
+    if(os.length===1 && !ps.length && os[0].amount) out += `<div class="evmore">${won(os[0].amount)}</div>`;
+    for(const x of ps){
+      if(used >= room) break;
+      out += `<div class="ev pers">${esc((x.title||'일정').slice(0,4))}</div>`; used++;
+    }
+    const rest = os.length + ps.length - used;
+    if(rest > 0) out += `<div class="evmore">+${rest}</div>`;
     return out;
   }
   const list = cellItems(d);
@@ -1083,13 +1165,16 @@ function renderPanel(){
 
   if(TAB===0){
     const list = cellItems(d);
-    const o = onceOn(SEL);
+    const os = onceList(SEL);
+    const o = os[0] || null;
     const persN = persOn(SEL).length;
+    const restN = Math.max(0, os.length - 1) + persN;
+    const oncAmt = os.reduce((a,x)=>a+parseAmt(x.amount), 0);
     let body = '';
-    const onceHtml = (o || persN) ? `<div class="dp-item once">
+    const onceHtml = (os.length || persN) ? `<div class="dp-item once">
         <div class="bar" style="background:var(--once)"></div>
-        <div class="m"><div class="n">${o?esc(onceLabel(o)):'개인 일정'}${persN?` 외 ${persN}건`:''}</div>
-          <div class="s">일회성·개인 일정${o&&o.amount?' · '+won(o.amount)+'원':''}</div></div>
+        <div class="m"><div class="n">${o?esc(onceLabel(o)):'개인 일정'}${restN?` 외 ${restN}건`:''}</div>
+          <div class="s">일회성·개인 일정${oncAmt?' · '+won(oncAmt)+'원':''}</div></div>
         <button class="dp-edit" data-act="once" data-date="${SEL}">보기</button></div>` : '';
     body += onceHtml;
     body += list.length ? list.map(({s,w},i)=>`
@@ -1120,7 +1205,9 @@ function renderPanel(){
   }
 
   if(TAB===1){                       /* ---------- 스케줄 (일회성 + 개인) ---------- */
-    const o  = D.once[SEL] || { place:'', amount:0, note:'', manager:'', entry:'', parking:'', work:'' };
+    const os = onceList(SEL);
+    const oe = ONCE_EDIT ? os.find(x=>x.id===ONCE_EDIT) : null;      /* 고치는 중인 일회성 (없으면 새로 추가) */
+    const o  = oe || { place:'', amount:0, note:'', manager:'', entry:'', parking:'', work:'' };
     const ps = persOn(SEL);
     const ed = PERS_EDIT ? ps.find(x=>x.id===PERS_EDIT) : null;
 
@@ -1144,9 +1231,13 @@ function renderPanel(){
         <textarea class="dp-ta" id="onWork" style="min-height:70px" placeholder="10시 도착, 3인 / 왁스 작업 포함"></textarea></div>
       <div class="field" style="margin-bottom:6px"><label>특이사항</label>
         <textarea class="dp-ta" id="onNote" style="min-height:60px"></textarea></div>
-      <div class="autosave" id="onSaved"></div>
-      <div class="hint">적는 대로 저장됩니다. 금액은 정산금액 탭에 건별로 합산되고,
-        정기청소 달력에는 날짜 옆에 <b>초록 점</b>으로만 표시됩니다.</div>`;
+      <div class="bn-actions" style="margin-top:2px">
+        ${oe?`<button class="btn sec" data-act="oncecancel">새로 쓰기</button>`:''}
+        <button class="btn pri" data-act="oncesave">${oe?'저장':'추가'}</button>
+      </div>
+      <div class="hint">${oe?'<b>고치는 중입니다.</b> 저장을 누르면 창이 닫힙니다.'
+        :'<b>새로 추가하는 칸입니다.</b> 하루에 여러 건 넣을 수 있습니다.'}
+        금액은 정산금액 탭에 건별로 합산되고, 정기청소 달력에는 날짜 옆에 <b>초록 점</b>으로만 표시됩니다.</div>`;
 
     const persForm = `
       <div class="field" style="margin-bottom:9px"><label>제목</label>
@@ -1159,22 +1250,24 @@ function renderPanel(){
       </div>
       <div class="hint">개인 일정은 정산이나 금액과 아무 상관 없이 기록만 됩니다.</div>`;
 
-    let rows = '';
-    if(onceOn(SEL)) rows += `<div class="dp-item once">
+    let rows = os.map(x=>`<div class="dp-item once ${ONCE_EDIT===x.id?'editing':''}">
         <div class="bar" style="background:var(--once)"></div>
-        <div class="m"><div class="n">${esc(onceLabel(o))}</div>
-          <div class="s">일회성${o.amount?' · '+won(o.amount)+'원':''}</div></div>
-        <button class="dp-edit" data-act="mode" data-v="once">수정</button>
-        <button class="dp-undo" data-act="oncedel">삭제</button></div>`;
-    rows += ps.map(x=>`<div class="dp-item">
+        <div class="m"><div class="n">${esc(onceLabel(x))}</div>
+          <div class="s">일회성${x.amount?' · '+won(x.amount)+'원':''}${ONCE_EDIT===x.id?' · <b>고치는 중</b>':''}</div></div>
+        <button class="dp-edit" data-act="onceedit" data-id="${x.id}">수정</button>
+        <button class="dp-undo" data-act="oncedel" data-id="${x.id}">삭제</button></div>`).join('');
+    rows += ps.map(x=>`<div class="dp-item ${PERS_EDIT===x.id?'editing':''}">
         <div class="bar" style="background:#94a3b8"></div>
         <div class="m"><div class="n">${esc(x.title||'개인 일정')}</div>
-          <div class="s">개인 일정${(x.note||'').trim()?' · '+esc(x.note.trim().split('\n')[0].slice(0,20)):''}</div></div>
+          <div class="s">개인 일정${(x.note||'').trim()?' · '+esc(x.note.trim().split('\n')[0].slice(0,20)):''}${PERS_EDIT===x.id?' · <b>고치는 중</b>':''}</div></div>
         <button class="dp-edit" data-act="persedit" data-id="${x.id}">수정</button>
         <button class="dp-undo" data-act="persdel" data-id="${x.id}">삭제</button></div>`).join('');
     if(!rows) rows = `<div class="hint">이 날 등록된 것이 없습니다</div>`;
 
-    daypanel.innerHTML = head + `${X}</div>` + pick
+    const canDel = SCHED_MODE==='once' ? !!oe : !!ed;
+    daypanel.innerHTML = head
+      + (canDel ? `<button class="dp-del" data-act="${SCHED_MODE==='once'?'oncedel':'persdel'}" data-id="${SCHED_MODE==='once'?oe.id:ed.id}">삭제</button>` : '')
+      + `<button class="dp-add" data-act="${SCHED_MODE==='once'?'oncesave':'perssave'}">저장</button>${X}</div>` + pick
       + (SCHED_MODE==='once' ? onceForm : persForm)
       + `<div class="dp-note">이 날 등록된 것</div>` + rows + offRow;
 
@@ -1182,16 +1275,7 @@ function renderPanel(){
       const P=$('#onPlace'), A=$('#onAmt'), M=$('#onMgr'), E=$('#onEntry'), K=$('#onPark'), W=$('#onWork'), N=$('#onNote');
       P.value=o.place||''; M.value=o.manager||''; E.value=o.entry||''; K.value=o.parking||'';
       W.value=o.work||''; N.value=o.note||''; A.value=o.amount?won(o.amount):'';
-      const put = ()=>{
-        const rec = { place:P.value, amount:parseAmt(A.value), manager:M.value, entry:E.value,
-                      parking:K.value, work:W.value, note:N.value };
-        const empty = !rec.place.trim() && !rec.note.trim() && !rec.work.trim() && !rec.amount
-                      && !rec.manager.trim() && !rec.entry.trim() && !rec.parking.trim();
-        if(empty) delete D.once[SEL]; else D.once[SEL] = rec;
-        save(); $('#onSaved').textContent = '자동 저장됨'; renderCal();
-      };
-      [P,M,E,K,W,N].forEach(el=>el.addEventListener('input', put));
-      A.addEventListener('input', ()=>{ const n=parseAmt(A.value); A.value = n?won(n):''; put(); });
+      A.addEventListener('input', ()=>{ const n=parseAmt(A.value); A.value = n?won(n):''; });
     }
     return;
   }
@@ -1219,7 +1303,9 @@ function renderPanel(){
     const monRows = mo.rows.filter(r=>EXP_FILTER==='all' || r.cat===EXP_FILTER);
     const monTot  = monRows.reduce((a,r)=>a+parseAmt(r.amt),0);
 
-    daypanel.innerHTML = head + `${X}</div>
+    daypanel.innerHTML = head
+      + (eo ? `<button class="dp-del" data-act="expdel" data-id="${eo.id}">삭제</button>` : '')
+      + `<button class="dp-add" data-act="expsave">저장</button>${X}</div>
       <div class="field" style="margin-bottom:9px"><label>항목</label>${catSeg}</div>
       <div class="field" style="margin-bottom:9px"><label>금액 (숫자만)</label>
         <input class="dp-in" id="exAmt" type="text" inputmode="numeric" placeholder="예) 70000" value="${eo?won(eo.amt):''}"></div>
@@ -1247,6 +1333,37 @@ function renderPanel(){
     A.addEventListener('input', ()=>{ const n=parseAmt(A.value); A.value = n?won(n):''; });
     return;
   }
+}
+
+/* 저장하지 않은 입력이 있으면 닫기 전에 한 번 물어봅니다 */
+function confirmDiscard(){
+  if(!panelOpen) return true;
+  const val = id => { const el = $('#'+id); return el ? (el.value||'').trim() : ''; };
+  const ask = () => confirm('저장하지 않은 내용이 있습니다. 저장하지 않고 닫을까요?');
+  if(TAB===1 && SCHED_MODE==='once'){
+    const rec = { place:val('onPlace'), amount:parseAmt(val('onAmt')), manager:val('onMgr'),
+                  entry:val('onEntry'), parking:val('onPark'), work:val('onWork'), note:val('onNote') };
+    if(onceEmpty(rec)) return true;
+    const cur = ONCE_EDIT ? onceList(SEL).find(x=>x.id===ONCE_EDIT) : null;
+    if(cur && parseAmt(cur.amount)===rec.amount
+       && ['place','manager','entry','parking','work','note'].every(k=>(cur[k]||'').trim()===rec[k])) return true;
+    return ask();
+  }
+  if(TAB===1){
+    const t = val('pTitle'), n = val('pNote');
+    if(!t && !n) return true;
+    const cur = PERS_EDIT ? persOn(SEL).find(x=>x.id===PERS_EDIT) : null;
+    if(cur && (cur.title||'').trim()===t && (cur.note||'').trim()===n) return true;
+    return ask();
+  }
+  if(TAB===2){
+    const a = parseAmt(val('exAmt')), m = val('exMemo');
+    if(!a && !m) return true;
+    const cur = EXP_EDIT ? expOn(SEL).find(x=>x.id===EXP_EDIT) : null;
+    if(cur && parseAmt(cur.amt)===a && (cur.memo||'').trim()===m) return true;
+    return ask();
+  }
+  return true;
 }
 
 /* 검색어 부분을 노란색으로 */
@@ -1408,14 +1525,19 @@ function regularRows(Y, M){
 }
 function onceRows(){
   const p = settleKey();
-  return Object.keys(D.once).filter(k=>k.startsWith(p))
-    .map(k=>({ date:k, o:D.once[k] }))
-    .filter(x=>x.o && (x.o.amount || (x.o.place||'').trim()))
-    .sort((a,b)=> a.date.localeCompare(b.date));
+  const out = [];
+  Object.keys(D.once||{}).filter(k=>k.startsWith(p)).sort().forEach(k=>{
+    onceList(k).forEach(o=>{
+      if(!parseAmt(o.amount) && !(o.place||'').trim()) return;
+      out.push({ date:k, o, key:onceKey(k, o) });
+    });
+  });
+  return out;
 }
 
 const openSkips = new Set();
 let SORT_HOURLY = false;
+let stTapKey = null, stTapT = 0, stTapTimer = null;   /* 정산 탭 두 번 누르기 */
 /* 건너뛴 날짜를 짧게 — 8월 3·4·5일 형태 */
 function skipDaysText(list){
   const by = new Map();
@@ -1438,7 +1560,7 @@ function renderSettle(){
   const regTotal = reg.reduce((a,b)=>a+b.total, 0);
   const oncTotal = onc.reduce((a,b)=>a+parseAmt(b.o.amount), 0);
   const regPaid  = reg.filter(r=>st.paid[r.name]).reduce((a,b)=>a+b.total, 0);
-  const oncPaid  = onc.filter(r=>st.opaid[r.date]).reduce((a,b)=>a+parseAmt(b.o.amount), 0);
+  const oncPaid  = onc.filter(r=>st.opaid[r.key]).reduce((a,b)=>a+parseAmt(b.o.amount), 0);
   const paid = regPaid + oncPaid, grand = regTotal + oncTotal;
 
   const ckHtml = (scope,k,inv,paidOn)=>`<div class="cks">
@@ -1455,20 +1577,21 @@ function renderSettle(){
         `<div class="li">${esc(x.r.name)} — ${x.od.labels.join('·')} 미입금 · ${won(x.od.amount)}원</div>`).join('') +
       `<div class="hint" style="margin-top:7px">지난달들 중 <b>입금 받음</b>이 안 눌린 달을 모은 것입니다. 화살표로 그 달에 가서 표시해 주세요.</div></div>`;
   }
+  h += `<div class="hint" style="padding:0 10px 8px">밑줄 있는 <b>현장 이름을 두 번 누르면</b> 세부사항을 고칠 수 있습니다. 고치면 정기청소 달력에도 함께 반영됩니다.</div>`;
   h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 거래처로 묶임</span>
       <span class="sortsw"><button class="${SORT_HOURLY?'':'on'}" data-act="sortamt">금액순</button><button class="${SORT_HOURLY?'on':''}" data-act="sorthr">시간당순</button></span></div>`;
   h += reg.length ? reg.map(r=>{
     const od = overdueOf(r.name);
     return `
-      <div class="strow ${od.months?'late':''}">
-        <div class="top"><div class="n">${esc(r.name)}${od.months?`<span class="latetag">${od.months}달 밀림</span>`:''}</div><div class="a">${won(r.total)}원${r.hourly?`<div class="hr">시간당 ${won(r.hourly)}원</div>`:''}</div></div>
+      <div class="strow ${od.months?'late':''}"${r.kids?'':` data-act="stsite" data-name="${esc(r.name)}"`}>
+        <div class="top"><div class="n">${r.kids?esc(r.name):`<span class="kidname">${esc(r.name)}</span>`}${od.months?`<span class="latetag">${od.months}달 밀림</span>`:''}</div><div class="a">${won(r.total)}원${r.hourly?`<div class="hr">시간당 ${won(r.hourly)}원</div>`:''}</div></div>
         <div class="s">${r.kids
             ? `현장 ${r.kids.length}곳 묶음 · 이번 달 ${r.cnt}회 방문`
             : (r.billing==='per'
               ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
               : `월 정액 · 이번 달 ${r.cnt}회 방문`) + (r.amount?'':' · 금액 미입력')}${r.skip?`<button class="skiptag" data-act="skipdays" data-k="${esc(r.name)}">건너뜀 ${r.skip}회 ▾</button>`:''}</div>
         ${r.skip && openSkips.has(r.name) ? `<div class="skipdays">${skipDaysText(r.skipDs)}</div>` : ''}
-        ${r.kids ? `<div class="kids">${r.kids.map(k=>`<div class="kid"><span>${esc(k.name)}${k.skip?` <button class="skiptag" data-act="skipdays" data-k="${esc(k.name)}">건너뜀 ${k.skip}회 ▾</button>`:''}</span><b>${won(k.total)}원</b></div>${k.skip && openSkips.has(k.name) ? `<div class="skipdays">${skipDaysText(k.skipDs)}</div>` : ''}`).join('')}</div>` : ''}
+        ${r.kids ? `<div class="kids">${r.kids.map(k=>`<div class="kid"><span><span class="kidname" data-act="stsite" data-name="${esc(k.name)}">${esc(k.name)}</span>${k.skip?` <button class="skiptag" data-act="skipdays" data-k="${esc(k.name)}">건너뜀 ${k.skip}회 ▾</button>`:''}</span><b>${won(k.total)}원</b></div>${k.skip && openSkips.has(k.name) ? `<div class="skipdays">${skipDaysText(k.skipDs)}</div>` : ''}`).join('')}</div>` : ''}
         ${ckHtml('site', r.name, !!st.inv[r.name], !!st.paid[r.name])}
       </div>`;
     }).join('')
@@ -1480,7 +1603,7 @@ function renderSettle(){
       <div class="strow">
         <div class="top"><div class="n">${esc(onceLabel(r.o))}</div><div class="a">${won(r.o.amount)}원</div></div>
         <div class="s">${esc(labelDate(r.date))}${(r.o.note||'').trim()?' · '+esc(r.o.note.split('\n')[0].trim().slice(0,20)):''}</div>
-        ${ckHtml('once', r.date, !!st.oinv[r.date], !!st.opaid[r.date])}
+        ${ckHtml('once', r.key, !!st.oinv[r.key], !!st.opaid[r.key])}
       </div>`).join('')
     : `<div class="empty">이 달 일회성 내역이 없습니다</div>`;
   h += `<div class="sttot"><span>일회성 합계</span><span>${won(oncTotal)}원</span></div>`;
@@ -1506,7 +1629,9 @@ function renderSettle(){
   h += `<div class="hint" style="padding:0 10px 20px">정기청소는 주5일이든 격주든 <b>현장 이름당 금액이 한 번만</b> 더해집니다.
         회수로 받는 곳은 현장 수정에서 정산 방식을 <b>회당</b>으로 바꾸면 그 달 실제 횟수만큼 곱해집니다.</div>`;
 
+  const keepTop = calwrap.scrollTop;          /* 현장을 고치고 돌아와도 보던 자리 그대로 */
   calwrap.innerHTML = h;
+  if(keepTop > 0) calwrap.scrollTop = keepTop;
 }
 
 /* 정산 내용을 글로 복사 — 현장 목록까지 전부 들어감 */
@@ -1529,12 +1654,13 @@ function dayText(date){
       if((s.work||'').trim())     L.push(`   작업 ${s.work.trim().split('\n').join(' / ')}`);
       });
   }
-  const o = onceOn(date);
-  if(o){
-    L.push(`■ ${onceLabel(o)} — 일회성${o.amount?' · '+won(o.amount)+'원':''}${isDone(date,'__once')?' ✔완료':''}`);
+  const os = onceList(date);
+  os.forEach(o=>{
+    L.push(`■ ${onceLabel(o)} — 일회성${o.amount?' · '+won(o.amount)+'원':''}`);
+    if((o.work||'').trim()) L.push(`   작업 ${o.work.trim().split('\n').join(' / ')}`);
     if((o.note||'').trim()) L.push(`   ${o.note.trim().split('\n').join(' / ')}`);
-  }
-  if(!list.length && !o) L.push('잡힌 일정이 없습니다');
+  });
+  if(!list.length && !os.length) L.push('잡힌 일정이 없습니다');
   const m = persText(date).trim();
   if(m){ L.push(''); L.push('[메모]'); L.push(m); }
   return L.join('\n');
@@ -1593,7 +1719,7 @@ function copySettle(){
   L.push('■ 일회성');
   if(onc.length) onc.forEach(r=>{
     const d = parseYmd(r.date);
-    L.push(`- ${d.getMonth()+1}/${d.getDate()} ${onceLabel(r.o)} : ${won(r.o.amount)}원${mark(st.oinv[r.date], st.opaid[r.date])}`);
+    L.push(`- ${d.getMonth()+1}/${d.getDate()} ${onceLabel(r.o)} : ${won(r.o.amount)}원${mark(st.oinv[r.key], st.opaid[r.key])}`);
   });
   else L.push('- 내역 없음');
   L.push(`일회성 합계 : ${won(oncTotal)}원`);
@@ -1656,6 +1782,24 @@ function onAct(e){
     renderCal(); renderPanel();
     return;
   }
+  if(act==='stsite'){                        /* 정산 탭에서 현장 이름 두 번 누르기 → 현장 수정 */
+    e.stopPropagation();
+    const nm = el.dataset.name, now = Date.now();
+    const tag = el.classList.contains('kidname') ? el : el.querySelector('.kidname');
+    if(stTapKey === nm && now - stTapT < 400){
+      stTapKey = null; clearTimeout(stTapTimer);
+      const s = D.sites.find(x=>(x.name||'').trim() === nm);
+      if(s) editSite(s.id); else toast('그 이름의 현장을 찾지 못했습니다');
+      return;
+    }
+    stTapKey = nm; stTapT = now;
+    if(tag){                                  /* 한 번 눌렀다는 표시 — 두 번째를 기다립니다 */
+      tag.classList.add('tapped');
+      clearTimeout(stTapTimer);
+      stTapTimer = setTimeout(()=>{ tag.classList.remove('tapped'); stTapKey = null; }, 400);
+    }
+    return;
+  }
   if(act==='sortamt'){ SORT_HOURLY = false; renderSettle(); return; }
   if(act==='sorthr'){  SORT_HOURLY = true;  renderSettle(); return; }
   if(act==='skipdays'){
@@ -1673,10 +1817,35 @@ function onAct(e){
   if(act==='ordermode'){ ORDER_MODE = !ORDER_MODE; renderPanel(); return; }
   if(act==='moveup'){ moveOrder(date, el.dataset.id, -1); return; }
   if(act==='movedn'){ moveOrder(date, el.dataset.id,  1); return; }
-  if(act==='mode'){ SCHED_MODE = el.dataset.v; PERS_EDIT = null; TAB = 1; D.ui.tab = 1; save(); render(); return; }
+  if(act==='mode'){ SCHED_MODE = el.dataset.v; PERS_EDIT = null; ONCE_EDIT = null; TAB = 1; D.ui.tab = 1; save(); render(); return; }
+  if(act==='onceedit'){
+    ONCE_EDIT = el.dataset.id; SCHED_MODE = 'once'; renderPanel();
+    daypanel.scrollTop = 0; return;
+  }
+  if(act==='oncecancel'){ ONCE_EDIT = null; renderPanel(); daypanel.scrollTop = 0; return; }
   if(act==='oncedel'){
-    if(!confirm('이 날 일회성 내용을 지울까요?')) return;
-    delete D.once[SEL]; save(true); render(); toast('지웠습니다'); return;
+    if(!confirm('이 일회성 내용을 지울까요?')) return;
+    const id = el.dataset.id;
+    D.once[SEL] = (D.once[SEL]||[]).filter(x=>x.id!==id);
+    if(!D.once[SEL].length) delete D.once[SEL];
+    ONCE_EDIT = null; save(true);
+    panelOpen = false; render(); toast('지웠습니다'); return;
+  }
+  if(act==='oncesave'){
+    const g = id => ($('#'+id) ? $('#'+id).value : '');
+    const rec = { place:g('onPlace').trim(), amount:parseAmt(g('onAmt')), manager:g('onMgr').trim(),
+                  entry:g('onEntry').trim(), parking:g('onPark').trim(), work:g('onWork'), note:g('onNote') };
+    if(onceEmpty(rec)){ toast('장소나 금액을 적어 주세요'); return; }
+    D.once[SEL] = D.once[SEL] || [];
+    if(ONCE_EDIT){
+      const it = D.once[SEL].find(x=>x.id===ONCE_EDIT);
+      if(it) Object.assign(it, rec); else D.once[SEL].push({ id: uid(), ...rec });
+      ONCE_EDIT = null;
+    } else {
+      D.once[SEL].push({ id: uid(), ...rec });
+    }
+    save(true);
+    panelOpen = false; render(); toast('저장했습니다'); return;
   }
   if(act==='persedit'){ PERS_EDIT = el.dataset.id; SCHED_MODE = 'personal'; renderPanel(); return; }
   if(act==='perscancel'){ PERS_EDIT = null; renderPanel(); return; }
@@ -1684,7 +1853,8 @@ function onAct(e){
     if(!confirm('이 개인 일정을 지울까요?')) return;
     D.personal[SEL] = persOn(SEL).filter(x=>x.id!==el.dataset.id);
     if(!D.personal[SEL].length) delete D.personal[SEL];
-    PERS_EDIT = null; save(true); render(); toast('지웠습니다'); return;
+    PERS_EDIT = null; save(true);
+    panelOpen = false; render(); toast('지웠습니다'); return;
   }
   if(act==='perssave'){
     const t = ($('#pTitle').value||'').trim(), n = ($('#pNote').value||'');
@@ -1697,7 +1867,8 @@ function onAct(e){
     } else {
       D.personal[SEL].push({ id: uid(), title: t, note: n });
     }
-    save(true); render(); toast('저장했습니다'); return;
+    save(true);
+    panelOpen = false; render(); toast('저장했습니다'); return;
   }
   if(act==='expcat'){ EXP_CAT = el.dataset.v; renderPanel(); return; }
   if(act==='expfilter'){ EXP_FILTER = el.dataset.v; renderPanel(); return; }
@@ -1711,7 +1882,8 @@ function onAct(e){
     if(!confirm('이 내역을 지울까요?')) return;
     D.expense[SEL] = expOn(SEL).filter(x=>x.id!==el.dataset.id);
     if(!D.expense[SEL].length) delete D.expense[SEL];
-    EXP_EDIT = null; save(true); render(); toast('지웠습니다'); return;
+    EXP_EDIT = null; save(true);
+    panelOpen = false; render(); toast('지웠습니다'); return;
   }
   if(act==='expsave'){
     const amt = parseAmt($('#exAmt').value), memo = ($('#exMemo').value||'').trim();
@@ -1724,17 +1896,26 @@ function onAct(e){
     } else {
       D.expense[SEL].push({ id: uid(), cat: EXP_CAT, amt, memo });
     }
-    save(true); render(); toast('저장했습니다'); return;
+    save(true);
+    panelOpen = false; render(); toast('저장했습니다'); return;
   }
   if(act==='newsite'){ editSite(null, SEL); return; }
-  if(act==='closepanel'){ panelOpen = false; renderCal(); renderPanel(); return; }
-  if(act==='once'){ TAB = 1; D.ui.tab = 1; SCHED_MODE = onceOn(SEL) ? 'once' : 'personal'; panelOpen = true; save(); render(); return; }
+  if(act==='closepanel'){
+    if(!confirmDiscard()) return;
+    panelOpen = false; ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null;
+    renderCal(); renderPanel(); return;
+  }
+  if(act==='once'){
+    TAB = 1; D.ui.tab = 1; SCHED_MODE = onceList(SEL).length ? 'once' : 'personal';
+    ONCE_EDIT = null; PERS_EDIT = null; panelOpen = true; save(); render(); return;
+  }
   if(act==='gosite'){ editSite(el.dataset.id); return; }
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; render(); scrollToDate(date); return; }
   if(act==='day'){
     const now = Date.now();
     if(lastTap.date===date && now-lastTap.t < 500){
       lastTap = {}; clearTimeout(dayTapTimer); dayTapTimer = null;
+      if(SEL !== date){ ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null; }
       SEL = date; closeBanner();
       if(TAB===0){                       /* 정기청소에서만 새 현장 등록 */
         editSite(null, date);
@@ -1749,6 +1930,7 @@ function onAct(e){
     dayTapTimer = setTimeout(()=>{
       dayTapTimer = null;
       panelOpen = !(panelOpen && SEL===date);
+      if(SEL !== date){ ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null; }
       SEL = date; closeBanner(); renderCal(); renderPanel();
     }, 260);
   }
@@ -2107,7 +2289,7 @@ function startSearch(){ closeSheet(); SEARCH_ON = true; searchQ=''; panelOpen=fa
 function endSearch(){ SEARCH_ON = false; searchQ=''; render(); }
 function openMenu(){
   closeBanner();
-  const cnt = D.sites.length, oc = Object.keys(D.once).length, mc = Object.keys(D.personal).length;
+  const cnt = D.sites.length, oc = onceCount(), mc = Object.keys(D.personal).length;
   openSheet('설정', `
     ${backupOverdue() ? `<div class="bkwarn">${daysSinceBackup()===null
         ? '아직 <b>백업을 한 번도 안 하셨습니다.</b> 이 앱의 데이터는 이 브라우저 안에만 있어서, 방문기록을 지우거나 폰을 바꾸면 전부 사라집니다.'
@@ -2181,7 +2363,7 @@ function exportData(){
     <button class="btn sec" style="margin-bottom:10px" onclick="copyBackup()">백업 내용 글로 복사</button>
     <div class="field" style="margin-top:6px"><label>백업 내용 (길게 눌러 전체 선택해도 됩니다)</label>
       <textarea id="bkTa" style="min-height:150px;font-size:11px" readonly></textarea></div>
-    <div class="hint">현장 ${D.sites.length}곳 · 일회성 ${Object.keys(D.once).length}건 · 개인 일정 ${Object.keys(D.personal).length}일 · 경비 ${Object.keys(D.expense).length}일</div>
+    <div class="hint">현장 ${D.sites.length}곳 · 일회성 ${onceCount()}건 · 개인 일정 ${Object.keys(D.personal).length}일 · 경비 ${Object.keys(D.expense).length}일</div>
   `, ()=>{ $('#bkTa').value = json; });
 }
 function shareBackup(){
@@ -2255,15 +2437,17 @@ $('#btnPrev').onclick  = ()=>moveWeeks(-1);
 $('#btnNext').onclick  = ()=>moveWeeks(1);
 $('#btnToday').onclick = ()=>{
   if(TAB===3){ const n=new Date(); SMY=n.getFullYear(); SMM=n.getMonth(); render(); return; }
-  SEL = todayYmd(); searchQ=''; panelOpen=false; closeBanner(); render(); scrollToDate(todayYmd(), true);
+  SEL = todayYmd(); VIEW_WK = null; searchQ=''; panelOpen=false; closeBanner();
+  render(); scrollToDate(todayYmd(), true);
 };
 $('#btnMenu').onclick  = openMenu;
 document.querySelectorAll('.tab').forEach(b=>{
   b.onclick = ()=>{
     TAB = +b.dataset.tab; D.ui.tab = TAB; save();
     searchQ=''; SEARCH_ON=false; panelOpen=false; ORDER_MODE=false; PERS_EDIT=null; EXP_EDIT=null;
-    closeBanner(); render();
-    if(TAB!==3) scrollToDate(SEL || todayYmd());
+    closeBanner(); ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null;
+    render();
+    if(TAB!==3) settleScroll(VIEW_WK || SEL || todayYmd());   /* 보던 자리 그대로 */
   };
 });
 
@@ -2386,11 +2570,35 @@ function toggleColorBy(el){
 
 window.addEventListener('resize', ()=>{ const b = WKH; fitWeeks(); if(WKH !== b) renderCal(); });
 window.addEventListener('beforeunload', ()=>save(true));
+
+/* 브라우저가 "아까 보던 스크롤 자리"로 되돌려 놓는 것을 막습니다 — 이것 때문에 엉뚱한 날짜가 보였습니다 */
+if('scrollRestoration' in history){ try{ history.scrollRestoration = 'manual'; }catch(e){} }
+calwrap.addEventListener('pointerdown', ()=>{ scrollFix++; }, { passive:true });
+
+/* 앱을 다시 열었을 때 — 오래 떠나 있었거나 날짜가 바뀌었으면 정기청소·오늘로 되돌립니다 */
+let awayAt = 0, bootDay = todayYmd();
+function backToToday(){
+  TAB = 0; D.ui.tab = 0;
+  SEARCH_ON = false; searchQ = ''; panelOpen = false; ORDER_MODE = false;
+  ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null;
+  SEL = todayYmd(); bootDay = SEL; VIEW_WK = null;
+  closeBanner(); closeSheet(); render(); settleScroll(SEL);
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ awayAt = Date.now(); save(true); return; }
+  const away = awayAt ? Date.now() - awayAt : 0;
+  awayAt = 0;
+  if(away > 30*60*1000 || todayYmd() !== bootDay) backToToday();
+});
+window.addEventListener('pageshow', e=>{                 /* 자던 화면을 깨워서 열 때 */
+  if(e.persisted) backToToday();
+});
+
 migrateColors();
 migrateMemos();
 ensureSince();
 render();
-setTimeout(()=>{ if(TAB!==3 && !SEARCH_ON) scrollToDate(SEL || todayYmd()); }, 40);
+settleScroll(todayYmd());
 refreshBackupBadge();
 </script>
 </body>
