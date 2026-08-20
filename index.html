@@ -39,7 +39,9 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .topbar .sp{flex:1}
 .tb-btn{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#1e293b;color:#e2e8f0}
 .tb-btn:active{background:#334155}
-.tb-btn.wide{width:auto;padding:0 10px;font-size:12px;font-weight:600}
+.tb-btn.wide{width:auto;padding:0 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.tb-btn.hi{background:#0ea5e9;color:#fff;font-weight:800;padding:0 8px;font-size:11.5px}
+.tb-btn.hi:active{background:#0284c7}
 .tb-btn{position:relative}
 .tb-btn.warn::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;
   border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #1e293b}
@@ -227,6 +229,10 @@ button{border:none;background:none;cursor:pointer;padding:0}
   border-bottom:4px solid transparent!important;border-left:6px solid #38bdf8!important;
   border-right:0!important;border-radius:0!important;background:none!important}
 .evmore{font-size:9px;font-weight:800;color:var(--sub);text-align:center}
+/* 눌러서 그날 전체를 펼쳐 보는 표시 */
+.evmore.tap{background:#e2e8f0;color:#334155;border-radius:5px;padding:1px 0;margin-top:1px;
+  letter-spacing:-.2px;box-shadow:inset 0 0 0 1px #cbd5e1}
+.evmore.tap:active{background:#cbd5e1}
 .dawnsep{height:0;border-top:2px dotted #94a3b8;margin:2px 1px 1px}
 
 /* ---------- day panel ---------- */
@@ -297,6 +303,31 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .ck.paid.on{background:#d1fae5;color:#047857}
 .sttot{display:flex;justify-content:space-between;align-items:center;background:var(--dark);color:#fff;
   border-radius:12px;padding:12px 14px;margin:3px 6px 6px;font-weight:800;font-size:15px}
+/* ---------- 월별 기록 ---------- */
+.yrbox{background:var(--dark);color:#fff;border-radius:13px;padding:12px 14px;margin-bottom:10px}
+.yrbox .t{font-size:11.5px;font-weight:800;color:#94a3b8}
+.yrbox .v{font-size:20px;font-weight:800;margin-top:3px;letter-spacing:-.3px}
+.yrbox .sub{font-size:12px;font-weight:700;color:#cbd5e1;margin-top:4px}
+.missbox{background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:11px 12px;margin-bottom:10px}
+.missbox .mt{font-size:12px;font-weight:800;color:#92400e;margin-bottom:5px}
+.missbox .mi{font-size:13px;font-weight:700;color:#78350f;padding:3px 0}
+.missbox .mh{font-size:11px;color:#a16207;font-weight:700;margin-top:6px;line-height:1.45}
+.mrow{background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:7px}
+.mrow:active{background:#eef2f7}
+.mrow.late{box-shadow:inset 3px 0 0 #ef4444}
+.mrow .top{display:flex;align-items:center;gap:8px}
+.mrow .m{font-weight:800;font-size:15px;flex:1;min-width:0}
+.mrow .tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;background:#e0f2fe;color:#0369a1}
+.mrow .tag.now{background:#dcfce7;color:#15803d}
+.mrow .dl{font-size:12.5px;font-weight:800;white-space:nowrap;color:#64748b}
+.mrow .dl.up{color:#b91c1c}
+.mrow .dl.dn{color:#1d4ed8}
+.mrow .amt{font-size:17px;font-weight:800;margin-top:5px;letter-spacing:-.3px}
+.mrow .s{font-size:11.5px;color:var(--sub);font-weight:700;margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mrow .s b.p{color:#047857}
+.mrow .s b.d{color:#b91c1c}
+.mrow .recalc{margin-left:auto;font-size:11px;font-weight:800;padding:4px 9px;border-radius:8px;
+  background:#e2e8f0;color:#334155}
 .stsum{display:flex;gap:6px;margin:0 6px 14px}
 .stsum div{flex:1;background:var(--card);border-radius:10px;padding:9px 10px;font-size:11.5px;font-weight:800;color:var(--sub)}
 .stsum div b{display:block;font-size:14px;color:var(--ink);margin-top:3px}
@@ -403,6 +434,7 @@ button{border:none;background:none;cursor:pointer;padding:0}
       <div class="range" id="tRange">—</div>
     </div>
     <div class="sp"></div>
+    <button class="tb-btn wide hi" id="btnHist" onclick="openHistory()">월별기록</button>
     <button class="tb-btn wide" id="btnToday">오늘</button>
     <button class="tb-btn" id="btnNext" aria-label="다음">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -486,7 +518,7 @@ const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
 const KEY = 'cleandiary.v1';
-const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
+const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, hist: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
 let D = load();
 
 function load(){
@@ -497,6 +529,7 @@ function load(){
     const d = Object.assign(structuredClone(DEFAULT_DATA), p);
     d.ui = Object.assign({ tab:0, colorBy:'site', lastBackup:'' }, p.ui||{});   /* ui는 통째로 덮이지 않게 병합 */
     d.done = d.done || {};
+    d.hist = d.hist || {};                       /* 월별 기록(확정된 달) — 옛 백업에는 없습니다 */
     d.personal = d.personal || {}; d.expense = d.expense || {};
     d.order = d.order || {}; d.memos = d.memos || {};
     return d;
@@ -966,9 +999,10 @@ const maxInCell = () => MAXCHIP;
 function render(){ renderTop(); renderCal(); renderPanel(); syncArrows(); }
 function syncArrows(){
   const show = (TAB===3) ? 'flex' : 'none';
-  const a = $('#btnPrev'), b = $('#btnNext');
+  const a = $('#btnPrev'), b = $('#btnNext'), h = $('#btnHist');
   if(a) a.style.display = show;
   if(b) b.style.display = show;
+  if(h) h.style.display = show;          /* 월별 기록은 정산금액 탭에서만 */
 }
 
 function renderTop(){
@@ -1119,7 +1153,7 @@ function cellBody(d, s){
       out += `<div class="ev pers">${esc((x.title||'일정').slice(0,4))}</div>`; used++;
     }
     const rest = os.length + ps.length - used;
-    if(rest > 0) out += `<div class="evmore">+${rest}</div>`;
+    if(rest > 0) out += `<div class="evmore tap" data-act="more" data-date="${s}">+${rest} 더보기</div>`;
     return out;
   }
   const list = cellItems(d);
@@ -1141,7 +1175,7 @@ function cellBody(d, s){
     if(lead && i === lead) out += '<div class="dawnsep"></div>';
     out += html;
   });
-  if(chips.length > room) out += `<div class="evmore">+${chips.length - room}</div>`;
+  if(chips.length > room) out += `<div class="evmore tap" data-act="more" data-date="${s}">+${chips.length - room} 더보기</div>`;
   return out;
 }
 
@@ -1523,8 +1557,8 @@ function regularRows(Y, M){
   else out.sort((a,b)=> b.total - a.total || a.name.localeCompare(b.name,'ko'));
   return out;
 }
-function onceRows(){
-  const p = settleKey();
+function onceRows(Y, M){
+  const p = (Y===undefined) ? settleKey() : `${Y}-${pad(M+1)}`;
   const out = [];
   Object.keys(D.once||{}).filter(k=>k.startsWith(p)).sort().forEach(k=>{
     onceList(k).forEach(o=>{
@@ -1533,6 +1567,137 @@ function onceRows(){
     });
   });
   return out;
+}
+
+/* ==================== 월별 기록 ====================
+   지난 달 정산은 그 달이 끝나면 '확정'되어 그대로 저장됩니다.
+   나중에 현장 금액을 바꿔도 확정된 달의 숫자는 변하지 않습니다. */
+const monKey = (y,m) => `${y}-${pad(m+1)}`;
+const monLabel = k => `${(+k.split('-')[0])}년 ${(+k.split('-')[1])}월`;
+const curMonKey = () => { const n = new Date(); return monKey(n.getFullYear(), n.getMonth()); };
+
+/* 그 달의 숫자를 지금 데이터로 계산합니다 */
+function monthCalc(y, m){
+  const key = monKey(y, m);
+  const st = D.settle[key] || {};
+  const reg = regularRows(y, m), onc = onceRows(y, m);
+  const regTotal = reg.reduce((a,b)=>a+b.total, 0);
+  const oncTotal = onc.reduce((a,b)=>a+parseAmt(b.o.amount), 0);
+  const regPaid  = reg.filter(r=>(st.paid ||{})[r.name]).reduce((a,b)=>a+b.total, 0);
+  const oncPaid  = onc.filter(r=>(st.opaid||{})[r.key]).reduce((a,b)=>a+parseAmt(b.o.amount), 0);
+  const ex = expMonth(y, m);
+  return {
+    k: key, reg: regTotal, onc: oncTotal, grand: regTotal + oncTotal,
+    paid: regPaid + oncPaid, exp: ex.tot, cnt: reg.length,
+    sites: reg.map(r=>({ n:r.name, t:r.total })), at: todayYmd()
+  };
+}
+const monEmpty = s => !s.grand && !s.exp && !s.cnt;
+
+/* 자료가 있는 가장 이른 달 */
+function firstMonth(){
+  const ks = [];
+  const push = o => Object.keys(o||{}).forEach(k=>{ if(k.length>=7) ks.push(k.slice(0,7)); });
+  push(D.once); push(D.expense); push(D.personal); push(D.settle); push(D.hist);
+  if(D.ui.since) ks.push(D.ui.since);
+  ks.sort();
+  return ks[0] || curMonKey();
+}
+/* 지난 달들을 확정 저장합니다 (앱을 열 때 자동) */
+function freezeMonths(){
+  D.hist = D.hist || {};
+  const cur = curMonKey();
+  let [y, m] = firstMonth().split('-').map(Number); m -= 1;
+  let changed = false;
+  for(let i=0; i<120; i++){
+    const k = monKey(y, m);
+    if(k >= cur) break;
+    if(!D.hist[k]){
+      const s = monthCalc(y, m);
+      if(!monEmpty(s)){ D.hist[k] = s; changed = true; }
+    }
+    m++; if(m > 11){ m = 0; y++; }
+  }
+  if(changed) save(true);
+}
+/* 화면에 뿌릴 목록 — 이번 달은 지금 계산, 지난 달은 확정된 기록 */
+function monthList(){
+  const cur = curMonKey();
+  const out = [{ ...monthCalc(+cur.slice(0,4), +cur.slice(5,7) - 1), live:true }];
+  Object.keys(D.hist||{}).filter(k=>k < cur).sort().reverse()
+    .forEach(k=> out.push({ ...D.hist[k], k, live:false }));
+  return out;
+}
+function openHistory(){
+  closeBanner();
+  const list = monthList();
+  const yNow = new Date().getFullYear();
+  const ofYear = list.filter(x=>+x.k.slice(0,4) === yNow);
+  const ySum = ofYear.reduce((a,b)=>a+b.grand, 0);
+  const yAvg = ofYear.length ? Math.round(ySum / ofYear.length) : 0;
+
+  /* 지난달엔 있었는데 이번 달엔 없는 현장 */
+  const gone = (()=>{
+    if(list.length < 2) return [];
+    const now = new Set((list[0].sites||[]).map(s=>s.n));
+    return (list[1].sites||[]).filter(s=>!now.has(s.n));
+  })();
+
+  let h = `<div class="yrbox"><div class="t">${yNow}년 누적</div>
+      <div class="v">${won(ySum)}원</div>
+      <div class="sub">월 평균 ${won(yAvg)}원 · ${ofYear.length}개월</div></div>`;
+
+  if(gone.length){
+    h += `<div class="missbox"><div class="mt">지난달엔 있었는데 이번 달에 없는 현장 ${gone.length}곳</div>` +
+      gone.map(s=>`<div class="mi">${esc(s.n)} — ${monLabel(list[1].k).split('년 ')[1]} ${won(s.t)}원</div>`).join('') +
+      `<div class="mh">계약이 끝났거나 등록을 빠뜨린 것일 수 있습니다.</div></div>`;
+  }
+
+  h += `<div class="stsec">월별 내역 <span style="color:#94a3b8">· 줄을 누르면 그 달로 이동</span></div>`;
+  h += list.map((x, i)=>{
+    const prev = list[i+1];
+    const dif = prev ? x.grand - prev.grand : 0;
+    const due = Math.max(0, x.grand - x.paid);
+    return `<div class="mrow ${due?'late':''}" onclick="goMonth('${x.k}')">
+        <div class="top"><div class="m">${monLabel(x.k)}</div>
+          <span class="tag ${x.live?'now':''}">${x.live?'진행 중':'확정'}</span>
+          ${prev ? `<div class="dl ${dif>0?'up':(dif<0?'dn':'')}">${dif===0?'변화 없음':(dif>0?'+':'−')+won(Math.abs(dif))+(dif>0?' ▲':' ▼')}</div>` : ''}</div>
+        <div class="amt">${won(x.grand)}원</div>
+        <div class="s">입금 <b class="p">${won(x.paid)}</b> · 미수 <b class="d">${won(due)}</b> · 경비 ${won(x.exp)}</div>
+        <div class="s">경비 빼고 남은 금액 <b>${won(x.grand - x.exp)}원</b>${x.live?'':`
+          <button class="recalc" onclick="event.stopPropagation();recalcMonth('${x.k}')">다시 계산</button>`}</div>
+      </div>`;
+  }).join('');
+
+  h += `<div class="hint" style="margin-top:10px">지난 달은 <b>확정</b>되어 그때 숫자 그대로 남습니다.
+      현장 금액을 나중에 바꿔도 지난 달 기록은 변하지 않습니다.
+      빠뜨린 내용을 뒤늦게 넣었다면 <b>다시 계산</b>을 눌러 주세요.<br><br>
+      이 기록은 백업 파일에도 함께 저장됩니다.</div>`;
+
+  openSheet('월별 기록', `<button class="btn sec" style="margin-bottom:12px" onclick="copyHistory()">월별 기록 글로 복사</button>${h}`);
+}
+function goMonth(k){
+  SMY = +k.slice(0,4); SMM = +k.slice(5,7) - 1;
+  closeSheet(); TAB = 3; D.ui.tab = 3; save(); render();
+}
+function recalcMonth(k){
+  const y = +k.slice(0,4), m = +k.slice(5,7) - 1;
+  D.hist[k] = monthCalc(y, m);
+  save(true); openHistory(); toast(monLabel(k) + ' 다시 계산했습니다');
+}
+function copyHistory(){
+  const list = monthList();
+  const L = ['[ 월별 기록 ]', ''];
+  list.forEach((x, i)=>{
+    const prev = list[i+1], dif = prev ? x.grand - prev.grand : 0;
+    const due = Math.max(0, x.grand - x.paid);
+    L.push(`${monLabel(x.k)}${x.live?' (진행 중)':''}`);
+    L.push(`  합계 ${won(x.grand)}원${prev?` (${dif>0?'+':''}${won(dif)})`:''}`);
+    L.push(`  입금 ${won(x.paid)}원 · 미수 ${won(due)}원`);
+    L.push(`  경비 ${won(x.exp)}원 · 남은 금액 ${won(x.grand - x.exp)}원`);
+    L.push('');
+  });
+  copyText(L.join('\n'), '월별 기록을 복사했습니다');
 }
 
 const openSkips = new Set();
@@ -1911,6 +2076,14 @@ function onAct(e){
   }
   if(act==='gosite'){ editSite(el.dataset.id); return; }
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; render(); scrollToDate(date); return; }
+  /* 칸에 다 안 들어간 일정 — '+3 더보기'를 누르면 바로 그날 목록을 펼칩니다 */
+  if(act==='more'){
+    clearTimeout(dayTapTimer); dayTapTimer = null; lastTap = {};
+    if(SEL !== date){ ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null; }
+    SEL = date; panelOpen = true; closeBanner();
+    renderCal(); renderPanel();
+    return;
+  }
   if(act==='day'){
     const now = Date.now();
     if(lastTap.date===date && now-lastTap.t < 500){
@@ -2302,6 +2475,7 @@ function openMenu(){
     </div>
     <button class="btn sec" style="margin-bottom:10px" onclick="startSearch()">현장·메모 검색</button>
     <button class="btn sec" style="margin-bottom:10px" onclick="openVacation()">휴가 기간 지정</button>
+    <button class="btn sec" style="margin-bottom:10px" onclick="openExport()">엑셀로 내보내기 (CSV)</button>
     <button class="btn sec" style="margin-bottom:10px" onclick="exportData()">백업 파일 내보내기</button>
     <button class="btn sec" style="margin-bottom:10px" onclick="document.getElementById('importFile').click()">백업 파일 불러오기</button>
     <button class="btn sec" style="margin-bottom:10px" onclick="openImportText()">붙여넣기로 되살리기</button>
@@ -2397,6 +2571,146 @@ function downloadBackup(){
   }catch(e){ toast('다운로드가 막혀 있습니다. 글로 복사를 써주세요'); }
 }
 function copyBackup(){ copyText(backupJson(), '백업 내용을 복사했습니다'); markBackup(); }
+
+/* ==================== 엑셀(CSV)로 내보내기 ====================
+   앱을 안 쓰게 되더라도 내용이 남도록, 엑셀에서 바로 열리는 표로 뽑아 둡니다. */
+let EXP_RANGE = 'all';                     /* month | year | all */
+const csvCell = v => {
+  const s = (v==null?'':String(v)).replace(/\r?\n/g, ' ');
+  return /[",]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+};
+const csvOf = rows => '﻿' + rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+
+function monthRange(){
+  const n = new Date(), cy = n.getFullYear(), cm = n.getMonth();
+  if(EXP_RANGE === 'month') return [{ y:cy, m:cm }];
+  const out = [];
+  if(EXP_RANGE === 'year'){
+    for(let m=0; m<=cm; m++) out.push({ y:cy, m });
+    return out;
+  }
+  let [y, m] = firstMonth().split('-').map(Number); m -= 1;
+  for(let i=0; i<120; i++){
+    out.push({ y, m });
+    if(y===cy && m===cm) break;
+    m++; if(m>11){ m=0; y++; }
+  }
+  return out;
+}
+const rangeName = () => ({ month:'이번달', year:'올해', all:'전체' })[EXP_RANGE];
+
+/* ① 현장 목록 — 앱을 그만 써도 이건 남아 있어야 합니다 */
+function csvSites(){
+  const rows = [['현장명','거래처','시간대','반복','정산방식','금액','1회 소요(분)','주소','담당자','출입','주차','작업내용','사업자등록번호','메일','계산서','중지','시작일']];
+  D.sites.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).forEach(s=>{
+    rows.push([s.name||'', s.client||'', slotName(s.slot), repText(s), billText(s),
+      parseAmt(s.amount)||'', s.mins||'', s.address||'', s.manager||'', s.entry||'', s.parking||'',
+      s.work||'', s.bizno||'', s.email||'', s.invoice?'발행':'', s.paused?'중지':'', s.startDate||'']);
+  });
+  return csvOf(rows);
+}
+/* ② 정산 내역 */
+function csvSettle(){
+  const rows = [['월','현장명','거래처','구분','금액','방문횟수','건너뜀','합계','계산서','입금']];
+  monthRange().forEach(({y,m})=>{
+    const key = monKey(y,m), st = D.settle[key] || {};
+    const put = (r, client)=> rows.push([key, r.name, client||'', r.billing==='per'?'회당':'월정액',
+      r.amount||'', r.cnt||0, r.skip||0, r.total||0,
+      (st.inv||{})[client||r.name]?'O':'', (st.paid||{})[client||r.name]?'O':'']);
+    regularRows(y, m).forEach(r=>{
+      if(r.kids) r.kids.forEach(k=>put(k, r.name));
+      else put(r, '');
+    });
+    onceRows(y, m).forEach(r=>rows.push([key, onceLabel(r.o), '', '일회성',
+      parseAmt(r.o.amount)||'', 1, 0, parseAmt(r.o.amount)||0,
+      (st.oinv||{})[r.key]?'O':'', (st.opaid||{})[r.key]?'O':'']));
+  });
+  return csvOf(rows);
+}
+/* ③ 일정 기록 */
+function csvSchedule(){
+  const rows = [['날짜','요일','구분','시간대','내용','완료','건너뜀','휴무·공휴일']];
+  monthRange().forEach(({y,m})=>{
+    const dim = daysInMonth(y,m);
+    for(let i=1; i<=dim; i++){
+      const dt = new Date(y,m,i), s = ymd(dt), dw = DOW_KR[dt.getDay()];
+      const tag = [holidayOf(s)||'', D.offdays[s]?'휴무':''].filter(Boolean).join(' ');
+      sitesOn(dt).forEach(st=>rows.push([s, dw, '정기청소', slotName(st.slot), st.name||'',
+        isDone(s, st.id)?'O':'', isSkipped(st, dt)?'O':'', tag]));
+      onceList(s).forEach(o=>rows.push([s, dw, '일회성', '', onceLabel(o), '', '', tag]));
+      persOn(s).forEach(p=>rows.push([s, dw, '개인일정', '', (p.title||'일정') + ((p.note||'').trim()?' / '+p.note:''), '', '', tag]));
+    }
+  });
+  return csvOf(rows);
+}
+/* ④ 가계부 */
+function csvExpense(){
+  const rows = [['날짜','항목','내용','금액']];
+  monthRange().forEach(({y,m})=>{
+    expMonth(y,m).rows.forEach(x=>rows.push([x.date, expCat(x.cat).n, x.memo||'', parseAmt(x.amt)||0]));
+  });
+  return csvOf(rows);
+}
+function csvFiles(){
+  const d = todayYmd();
+  return [
+    { name:`cleandiary-sites-${d}.csv`,      title:'현장 목록',  body:csvSites() },
+    { name:`cleandiary-settlement-${d}.csv`, title:'정산 내역',  body:csvSettle() },
+    { name:`cleandiary-schedule-${d}.csv`,   title:'일정 기록',  body:csvSchedule() },
+    { name:`cleandiary-expense-${d}.csv`,    title:'가계부',     body:csvExpense() },
+  ];
+}
+function openExport(){
+  closeSheet();
+  const pick = (k,n)=>`<button class="btn ${EXP_RANGE===k?'pri':'sec'}" style="flex:1" onclick="setExpRange('${k}')">${n}</button>`;
+  openSheet('엑셀로 내보내기', `
+    <div class="hint" style="margin:0 0 8px">엑셀에서 바로 열리는 표(CSV) <b>4개</b>가 만들어집니다 —
+      현장 목록 · 정산 내역 · 일정 기록 · 가계부.</div>
+    <div class="field"><label>기간</label>
+      <div style="display:flex;gap:6px">${pick('month','이번 달')}${pick('year','올해')}${pick('all','전체')}</div></div>
+    <button class="btn pri" style="margin:12px 0 10px" onclick="shareCsv()">공유하기 (카톡·메모·파일 앱)</button>
+    <button class="btn sec" style="margin-bottom:10px" onclick="downloadCsv()">파일로 저장</button>
+    <button class="btn sec" style="margin-bottom:10px" onclick="copyCsv()">글로 복사</button>
+    <div class="hint">현장 목록에는 주소·담당자·출입·주차·작업내용까지 들어갑니다.
+      앱을 쓰지 않게 되더라도 이 파일만 있으면 내용이 남습니다.<br><br>
+      휴대폰에서는 <b>공유하기</b>가 가장 잘 됩니다. 막히면 <b>글로 복사</b>해서 메모장이나 카톡 내게쓰기에 붙여넣어 두세요.</div>
+  `);
+}
+function setExpRange(k){ EXP_RANGE = k; openExport(); }
+function shareCsv(){
+  const fs = csvFiles();
+  try{
+    const files = fs.map(f=>new File([f.body], f.name, { type:'text/csv' }));
+    if(navigator.canShare && navigator.canShare({ files })){
+      navigator.share({ files, title:`청소 자료 (${rangeName()})` })
+        .then(()=>toast('내보냈습니다')).catch(()=>{});
+      return;
+    }
+    if(navigator.share){ navigator.share({ title:'청소 자료', text:csvAllText() }).catch(()=>{}); return; }
+  }catch(e){}
+  toast('이 브라우저는 공유를 지원하지 않습니다. 파일로 저장을 눌러 보세요');
+}
+function downloadCsv(){
+  const fs = csvFiles();
+  let i = 0;
+  const one = ()=>{
+    if(i >= fs.length){ toast('파일 4개를 저장했습니다'); return; }
+    const f = fs[i++];
+    try{
+      const url = URL.createObjectURL(new Blob([f.body], { type:'text/csv' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = f.name; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    }catch(e){ toast('다운로드가 막혀 있습니다. 글로 복사를 써주세요'); return; }
+    setTimeout(one, 600);              /* 한꺼번에 받으면 브라우저가 막습니다 */
+  };
+  one();
+}
+function csvAllText(){
+  return csvFiles().map(f=>`### ${f.title}\n${f.body.replace(/^﻿/,'')}`).join('\n\n');
+}
+function copyCsv(){ copyText(csvAllText(), '4개 표를 모두 복사했습니다'); }
 
 function openImportText(){
   openSheet('붙여넣기로 되살리기', `
@@ -2597,6 +2911,7 @@ window.addEventListener('pageshow', e=>{                 /* 자던 화면을 깨
 migrateColors();
 migrateMemos();
 ensureSince();
+freezeMonths();          /* 지난 달 정산을 확정해 둡니다 */
 render();
 settleScroll(todayYmd());
 refreshBackupBadge();
