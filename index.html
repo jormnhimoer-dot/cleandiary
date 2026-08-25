@@ -230,9 +230,17 @@ button{border:none;background:none;cursor:pointer;padding:0}
   border-right:0!important;border-radius:0!important;background:none!important}
 .evmore{font-size:9px;font-weight:800;color:var(--sub);text-align:center}
 /* 눌러서 그날 전체를 펼쳐 보는 표시 */
-.evmore.tap{background:#e2e8f0;color:#334155;border-radius:5px;padding:1px 0;margin-top:1px;
-  letter-spacing:-.2px;box-shadow:inset 0 0 0 1px #cbd5e1}
-.evmore.tap:active{background:#cbd5e1}
+.evmore.tap{display:flex;align-items:center;justify-content:center;width:100%;
+  min-height:26px;font-size:11px;background:#e2e8f0;color:#334155;border-radius:6px;
+  padding:0;margin-top:2px;letter-spacing:-.2px;box-shadow:inset 0 0 0 1px #cbd5e1}
+.evmore.tap:active{background:#94a3b8;color:#fff;transform:scale(.97)}
+/* 정산 탭 — 그 달 일한 요일 */
+.wdc{background:#0f172a;color:#fff;font-size:11.5px;font-weight:800;border-radius:7px;
+  padding:4px 9px;margin-left:6px;vertical-align:middle}
+.wdc.on{background:#0284c7}
+.wdn{margin:6px 0 0;color:#334155;font-size:12.5px;font-weight:700;letter-spacing:-.2px;
+  background:#f1f5f9;border-radius:8px;padding:7px 9px}
+.ck.plan{background:#fff7ed;color:#c2410c;box-shadow:inset 0 0 0 1.5px #fdba74}
 .dawnsep{height:0;border-top:2px dotted #94a3b8;margin:2px 1px 1px}
 
 /* ---------- day panel ---------- */
@@ -823,6 +831,8 @@ const calStart = () => addDays(startOfWeek(new Date()), -WEEKS_BACK*7);
 const calWeeks = () => WEEKS_BACK + WEEKS_FWD + 1;
 let SEL = todayYmd();
 let panelOpen = false;
+let tMoved = false;                 /* 손가락이 움직였으면(스크롤) 줄 누르기를 무시합니다 */
+const WDOPEN = {};                  /* 정산 탭에서 날짜를 펼쳐 둔 줄 */
 let searchQ = '';
 let SMY = new Date().getFullYear(), SMM = new Date().getMonth();   // 정산 보는 달
 
@@ -1153,7 +1163,13 @@ function cellBody(d, s){
       out += `<div class="ev pers">${esc((x.title||'일정').slice(0,4))}</div>`; used++;
     }
     const rest = os.length + ps.length - used;
-    if(rest > 0) out += `<div class="evmore tap" data-act="more" data-date="${s}">+${rest} 더보기</div>`;
+    if(rest > 0){
+      /* 더보기 버튼이 들어갈 자리를 만들려고 칩 하나를 접습니다 */
+      const cut = out.lastIndexOf('<div class="ev ');
+      if(cut > -1) out = out.slice(0, cut);
+      const rest2 = os.length + ps.length - Math.max(0, used - 1);
+      out += `<button type="button" class="evmore tap" data-act="more" data-date="${s}">+${rest2} 더보기</button>`;
+    }
     return out;
   }
   const list = cellItems(d);
@@ -1175,7 +1191,11 @@ function cellBody(d, s){
     if(lead && i === lead) out += '<div class="dawnsep"></div>';
     out += html;
   });
-  if(chips.length > room) out += `<div class="evmore tap" data-act="more" data-date="${s}">+${chips.length - room} 더보기</div>`;
+  if(chips.length > room){
+    const cut = out.lastIndexOf('<div class="ev ');
+    if(cut > -1) out = out.slice(0, cut);
+    out += `<button type="button" class="evmore tap" data-act="more" data-date="${s}">+${chips.length - room + 1} 더보기</button>`;
+  }
   return out;
 }
 
@@ -1508,13 +1528,64 @@ function overdueOf(name){
   return res;
 }
 
+function ckBox(scope, kind){
+  const st = settleStore();
+  return scope==='site' ? (kind==='inv' ? st.inv : st.paid) : (kind==='inv' ? st.oinv : st.opaid);
+}
+function ckDateBox(scope, kind){
+  const st = settleStore();
+  return scope==='site' ? (kind==='inv' ? st.invD : st.paidD) : (kind==='inv' ? st.oinvD : st.opaidD);
+}
+let CKSEL = null;
+function ckMenu(scope, kind, k){
+  CKSEL = { scope, kind, k };
+  const nm = kind==='inv' ? '계산서 발행' : '입금 받음';
+  const cur = ckDateBox(scope, kind)[k] || todayYmd();
+  openSheet(nm, `
+    <div class="hint" style="margin-bottom:12px"><b>${esc(k)}</b> — ${nm} 날짜입니다.</div>
+    <div class="field"><label>날짜</label><input type="date" id="ckDate"></div>
+    <div class="bn-actions" style="margin-top:18px">
+      <button class="btn dan" onclick="ckClear()">표시 지우기</button>
+      <button class="btn pri" onclick="ckSave()">날짜 저장</button>
+    </div>`, ()=>{ const i = $('#ckDate'); if(i) i.value = cur; });
+}
+function ckSave(){
+  if(!CKSEL) return;
+  const v = ($('#ckDate')||{}).value || todayYmd();
+  ckBox(CKSEL.scope, CKSEL.kind)[CKSEL.k] = true;
+  ckDateBox(CKSEL.scope, CKSEL.kind)[CKSEL.k] = v;
+  CKSEL = null; save(true); closeSheet(); renderSettle(); toast('날짜를 저장했습니다');
+}
+function ckClear(){
+  if(!CKSEL) return;
+  delete ckBox(CKSEL.scope, CKSEL.kind)[CKSEL.k];
+  delete ckDateBox(CKSEL.scope, CKSEL.kind)[CKSEL.k];
+  CKSEL = null; save(true); closeSheet(); renderSettle(); toast('표시를 지웠습니다');
+}
 function settleStore(){
   const k = settleKey();
   D.settle[k] = D.settle[k] || {};
   const s = D.settle[k];
   s.inv = s.inv || {}; s.paid = s.paid || {};
   s.oinv = s.oinv || {}; s.opaid = s.opaid || {};
+  /* 누른 날짜를 따로 적어 둡니다 — 옛 백업에는 없으므로 비어 있어도 그대로 동작합니다 */
+  s.invD = s.invD || {}; s.paidD = s.paidD || {};
+  s.oinvD = s.oinvD || {}; s.opaidD = s.opaidD || {};
   return s;
+}
+const DOW_CHIP = ['일','월','화','수','목','금','토'];
+function wdChip(r){
+  const ds = r.ds || []; if(!ds.length) return '';
+  const u = [...new Set(ds)].sort();
+  const dows = [...new Set(u.map(x=>parseYmd(x).getDay()))].sort((a,b)=>((a+6)%7)-((b+6)%7));
+  const open = !!WDOPEN[r.name];
+  return `<button type="button" class="wdc${open?' on':''}" data-act="wdays" data-name="${esc(r.name)}">`
+       + `${dows.map(d=>DOW_CHIP[d]).join('\u00b7')} \u25be</button>`;
+}
+function wdDates(r){
+  if(!WDOPEN[r.name]) return '';
+  const u = [...new Set(r.ds||[])].sort(); if(!u.length) return '';
+  return `<div class="wdn">${u.map(x=>parseYmd(x).getDate()).join('\u00b7')}\uc77c</div>`;
 }
 function regularRows(Y, M){
   const y = (Y===undefined) ? SMY : Y, m = (M===undefined) ? SMM : M;
@@ -1522,16 +1593,18 @@ function regularRows(Y, M){
   const map = new Map();          // 현장 이름 기준으로 묶음
   D.sites.forEach(s=>{
     let cnt = 0;
-    let skipN = 0; const skipDs = [];
+    let skipN = 0; const skipDs = []; const okDs = [];
     for(let i=1; i<=dim; i++){
       const dt = new Date(y, m, i);
       if(!occursOn(s, dt)) continue;
-      if(isSkipped(s, dt)){ skipN++; skipDs.push(ymd(dt)); } else cnt++;
+      if(isSkipped(s, dt)){ skipN++; skipDs.push(ymd(dt)); } else { cnt++; okDs.push(ymd(dt)); }
     }
     if(!cnt && !skipN) return;
     const k = (s.name||'').trim() || '(이름 없음)';
-    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim() };
+    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim() };
     g.cnt += cnt; g.skip = (g.skip||0) + skipN; g.skipDs = (g.skipDs||[]).concat(skipDs);
+    g.ds = (g.ds||[]).concat(okDs);
+    if(!g.invDay && +s.invDay) g.invDay = +s.invDay;
     g.mins += cnt * (+s.mins || 0);
     g.amount = Math.max(g.amount, parseAmt(s.amount));
     if(s.billing === 'per') g.billing = 'per';
@@ -1548,8 +1621,8 @@ function regularRows(Y, M){
   rows.forEach(r=>{
     const c = (r.client||'').trim();
     if(!c){ gm.set('@'+r.name, r); return; }
-    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], mins:0, amount:0, billing:'group', invoice:false, slots:new Set() };
-    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
+    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'group', invoice:false, slots:new Set() };
+    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.ds = (g.ds||[]).concat(r.ds||[]); if(!g.invDay && r.invDay) g.invDay = r.invDay; g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
     gm.set('#'+c, g);
   });
   const out = [...gm.values()].map(r=>({ ...r, hourly: r.mins ? Math.round(r.total / (r.mins/60)) : null }));
@@ -1702,7 +1775,7 @@ function copyHistory(){
 
 const openSkips = new Set();
 let SORT_HOURLY = false;
-let stTapKey = null, stTapT = 0, stTapTimer = null;   /* 정산 탭 두 번 누르기 */
+/* 정산 탭은 한 번 누르면 바로 현장 수정으로 갑니다 (예전 두 번 누르기 방식은 없앴습니다) */
 /* 건너뛴 날짜를 짧게 — 8월 3·4·5일 형태 */
 function skipDaysText(list){
   const by = new Map();
@@ -1728,10 +1801,17 @@ function renderSettle(){
   const oncPaid  = onc.filter(r=>st.opaid[r.key]).reduce((a,b)=>a+parseAmt(b.o.amount), 0);
   const paid = regPaid + oncPaid, grand = regTotal + oncTotal;
 
-  const ckHtml = (scope,k,inv,paidOn)=>`<div class="cks">
-      <button class="ck inv ${inv?'on':''}"  data-act="ck" data-kind="inv"  data-scope="${scope}" data-k="${esc(k)}">계산서 발행</button>
-      <button class="ck paid ${paidOn?'on':''}" data-act="ck" data-kind="paid" data-scope="${scope}" data-k="${esc(k)}">입금 받음</button>
+  const mdy = v => { const d = parseYmd(v); return d ? `${d.getMonth()+1}/${d.getDate()}` : ''; };
+  const ckHtml = (scope,k,inv,paidOn,invDay)=>{
+    const dI = (scope==='site' ? st.invD : st.oinvD)[k] || '';
+    const dP = (scope==='site' ? st.paidD : st.opaidD)[k] || '';
+    const invTxt = inv ? `계산서 발행${dI?' '+mdy(dI):''}`
+                       : (invDay ? `계산서 ${invDay}일 발행 예정` : '계산서 발행');
+    return `<div class="cks">
+      <button class="ck inv ${inv?'on':(invDay?'plan':'')}"  data-act="ck" data-kind="inv"  data-scope="${scope}" data-k="${esc(k)}">${invTxt}</button>
+      <button class="ck paid ${paidOn?'on':''}" data-act="ck" data-kind="paid" data-scope="${scope}" data-k="${esc(k)}">입금 받음${paidOn&&dP?' '+mdy(dP):''}</button>
     </div>`;
+  };
 
   const late = reg.map(r=>({ r, od: overdueOf(r.name) })).filter(x=>x.od.months>0);
 
@@ -1742,7 +1822,7 @@ function renderSettle(){
         `<div class="li">${esc(x.r.name)} — ${x.od.labels.join('·')} 미입금 · ${won(x.od.amount)}원</div>`).join('') +
       `<div class="hint" style="margin-top:7px">지난달들 중 <b>입금 받음</b>이 안 눌린 달을 모은 것입니다. 화살표로 그 달에 가서 표시해 주세요.</div></div>`;
   }
-  h += `<div class="hint" style="padding:0 10px 8px">밑줄 있는 <b>현장 이름을 두 번 누르면</b> 세부사항을 고칠 수 있습니다. 고치면 정기청소 달력에도 함께 반영됩니다.</div>`;
+  h += `<div class="hint" style="padding:0 10px 8px"><b>현장 줄을 한 번 누르면</b> 세부사항을 고칠 수 있습니다. 고치면 정기청소 달력에도 함께 반영됩니다.</div>`;
   h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 거래처로 묶임</span>
       <span class="sortsw"><button class="${SORT_HOURLY?'':'on'}" data-act="sortamt">금액순</button><button class="${SORT_HOURLY?'on':''}" data-act="sorthr">시간당순</button></span></div>`;
   h += reg.length ? reg.map(r=>{
@@ -1754,10 +1834,11 @@ function renderSettle(){
             ? `현장 ${r.kids.length}곳 묶음 · 이번 달 ${r.cnt}회 방문`
             : (r.billing==='per'
               ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
-              : `월 정액 · 이번 달 ${r.cnt}회 방문`) + (r.amount?'':' · 금액 미입력')}${r.skip?`<button class="skiptag" data-act="skipdays" data-k="${esc(r.name)}">건너뜀 ${r.skip}회 ▾</button>`:''}</div>
+              : `월 정액 · 이번 달 ${r.cnt}회 방문`) + (r.amount?'':' · 금액 미입력')}${wdChip(r)}${r.skip?`<button class="skiptag" data-act="skipdays" data-k="${esc(r.name)}">건너뜀 ${r.skip}회 ▾</button>`:''}</div>
+        ${wdDates(r)}
         ${r.skip && openSkips.has(r.name) ? `<div class="skipdays">${skipDaysText(r.skipDs)}</div>` : ''}
         ${r.kids ? `<div class="kids">${r.kids.map(k=>`<div class="kid"><span><span class="kidname" data-act="stsite" data-name="${esc(k.name)}">${esc(k.name)}</span>${k.skip?` <button class="skiptag" data-act="skipdays" data-k="${esc(k.name)}">건너뜀 ${k.skip}회 ▾</button>`:''}</span><b>${won(k.total)}원</b></div>${k.skip && openSkips.has(k.name) ? `<div class="skipdays">${skipDaysText(k.skipDs)}</div>` : ''}`).join('')}</div>` : ''}
-        ${ckHtml('site', r.name, !!st.inv[r.name], !!st.paid[r.name])}
+        ${ckHtml('site', r.name, !!st.inv[r.name], !!st.paid[r.name], r.invDay)}
       </div>`;
     }).join('')
     : `<div class="empty">이 달에 잡힌 정기청소가 없습니다</div>`;
@@ -1768,7 +1849,7 @@ function renderSettle(){
       <div class="strow">
         <div class="top"><div class="n">${esc(onceLabel(r.o))}</div><div class="a">${won(r.o.amount)}원</div></div>
         <div class="s">${esc(labelDate(r.date))}${(r.o.note||'').trim()?' · '+esc(r.o.note.split('\n')[0].trim().slice(0,20)):''}</div>
-        ${ckHtml('once', r.key, !!st.oinv[r.key], !!st.opaid[r.key])}
+        ${ckHtml('once', r.key, !!st.oinv[r.key], !!st.opaid[r.key], 0)}
       </div>`).join('')
     : `<div class="empty">이 달 일회성 내역이 없습니다</div>`;
   h += `<div class="sttot"><span>일회성 합계</span><span>${won(oncTotal)}원</span></div>`;
@@ -1909,13 +1990,16 @@ function onAct(e){
   const act = el.dataset.act, date = el.dataset.date;
 
   if(act==='ck'){
-    const st = settleStore();
-    const box = el.dataset.scope==='site'
-      ? (el.dataset.kind==='inv' ? st.inv : st.paid)
-      : (el.dataset.kind==='inv' ? st.oinv : st.opaid);
-    const k = el.dataset.k;
-    if(box[k]) delete box[k]; else box[k] = true;
-    save(true); renderSettle();
+    e.stopPropagation();
+    const scope = el.dataset.scope, kind = el.dataset.kind, k = el.dataset.k;
+    const box = ckBox(scope, kind), dbox = ckDateBox(scope, kind);
+    if(box[k]){                       /* 이미 표시된 것 — 날짜를 바꾸거나 지웁니다 */
+      ckMenu(scope, kind, k);
+    }else{                            /* 처음 누르면 오늘 날짜로 바로 표시 */
+      box[k] = true; dbox[k] = todayYmd();
+      save(true); renderSettle();
+      toast((kind==='inv'?'계산서 발행':'입금 받음')+' — 오늘 날짜로 표시했습니다');
+    }
     return;
   }
   if(act==='offday'){
@@ -1947,22 +2031,19 @@ function onAct(e){
     renderCal(); renderPanel();
     return;
   }
-  if(act==='stsite'){                        /* 정산 탭에서 현장 이름 두 번 누르기 → 현장 수정 */
+  if(act==='stsite'){                        /* 정산 탭에서 줄을 한 번 누르면 → 현장 수정 */
     e.stopPropagation();
-    const nm = el.dataset.name, now = Date.now();
-    const tag = el.classList.contains('kidname') ? el : el.querySelector('.kidname');
-    if(stTapKey === nm && now - stTapT < 400){
-      stTapKey = null; clearTimeout(stTapTimer);
-      const s = D.sites.find(x=>(x.name||'').trim() === nm);
-      if(s) editSite(s.id); else toast('그 이름의 현장을 찾지 못했습니다');
-      return;
-    }
-    stTapKey = nm; stTapT = now;
-    if(tag){                                  /* 한 번 눌렀다는 표시 — 두 번째를 기다립니다 */
-      tag.classList.add('tapped');
-      clearTimeout(stTapTimer);
-      stTapTimer = setTimeout(()=>{ tag.classList.remove('tapped'); stTapKey = null; }, 400);
-    }
+    if(tMoved) return;                       /* 스크롤하다 스친 것은 무시 */
+    const nm = el.dataset.name;
+    const s = D.sites.find(x=>(x.name||'').trim() === nm);
+    if(s) editSite(s.id); else toast('그 이름의 현장을 찾지 못했습니다');
+    return;
+  }
+  if(act==='wdays'){                         /* 요일칩 — 그 달 일한 날짜 펼치기 */
+    e.stopPropagation();
+    const nm = el.dataset.name;
+    if(WDOPEN[nm]) delete WDOPEN[nm]; else WDOPEN[nm] = true;
+    setTimeout(renderSettle, 40);
     return;
   }
   if(act==='sortamt'){ SORT_HOURLY = false; renderSettle(); return; }
@@ -2078,10 +2159,12 @@ function onAct(e){
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; render(); scrollToDate(date); return; }
   /* 칸에 다 안 들어간 일정 — '+3 더보기'를 누르면 바로 그날 목록을 펼칩니다 */
   if(act==='more'){
+    e.stopPropagation();
     clearTimeout(dayTapTimer); dayTapTimer = null; lastTap = {};
     if(SEL !== date){ ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null; }
     SEL = date; panelOpen = true; closeBanner();
-    renderCal(); renderPanel();
+    /* 누르는 도중에 달력을 통째로 다시 그리면 폰에서 눌림이 씹힙니다 — 한 박자 뒤에 그립니다 */
+    setTimeout(()=>{ renderCal(); renderPanel(); }, 40);
     return;
   }
   if(act==='day'){
@@ -2173,7 +2256,7 @@ function editSite(id, presetDate){
           weekday: pd?pd.getDay():1, dates: pd?[presetDate]:[] },
     color: nextColorIdx(null), mins: 0,
     startDate:'', address:'', manager:'', bizno:'', email:'', client:'', entry:'', parking:'', work:'', note:'',
-    amount:0, billing:'monthly', invoice:false, paused:false, skips:[]
+    amount:0, billing:'monthly', invoice:false, invDay:0, paused:false, skips:[]
   };
   form.rep = Object.assign({ type:'weekly', days:[], anchor: todayYmd(), day:1, nth:1, weekday:1, dates:[] }, form.rep||{});
   if(!Array.isArray(form.rep.dates)) form.rep.dates = [];
@@ -2259,6 +2342,9 @@ function editSite(id, presetDate){
     <div class="field"><label>작업내용</label><textarea id="fWork"></textarea></div>
 
     <div class="swrow"><div><b>계산서 발행</b><div class="hint">발행하는 곳인지 표시만 합니다</div></div><div class="sw" id="fInvoice"></div></div>
+    <div class="field" style="margin-top:12px"><label>계산서 발행 예정일 (매월 며칠)</label>
+      <input type="number" id="fInvDay" min="1" max="31" inputmode="numeric" placeholder="예) 5 — 비워두면 표시 안 함">
+      <div class="hint">여기에 날짜를 적어 두면 정산금액 탭에 <b>매달</b> "계산서 5일 발행 예정"으로 뜹니다. 잊지 않고 발행하시라고 미리 알려 주는 표시입니다.</div></div>
     <div class="swrow"><div><b>일시 중지</b><div class="hint">달력에 표시하지 않습니다</div></div><div class="sw" id="fPaused"></div></div>
     ${form.skips.length?`<div class="hint" style="margin-top:10px">건너뛴 날짜 ${form.skips.length}개 <button style="color:#0ea5e9;font-weight:800" onclick="clearSkips()">모두 되돌리기</button></div>`:''}
 
@@ -2339,6 +2425,14 @@ function bindForm(){
 
   const sw = (sel,key)=>{ const e=$(sel); e.classList.toggle('on', !!form[key]); e.onclick=()=>{ form[key]=!form[key]; e.classList.toggle('on', form[key]); }; };
   sw('#fInvoice','invoice'); sw('#fPaused','paused');
+  const iv = $('#fInvDay');
+  if(iv){
+    iv.value = +form.invDay ? +form.invDay : '';
+    iv.addEventListener('input', e=>{
+      const n = Math.max(0, Math.min(31, parseInt(e.target.value,10) || 0));
+      form.invDay = n;
+    });
+  }
 
   if(!Number.isInteger(form.color)) form.color = nextColorIdx(form.id);
   const cw = $('#fColor');
@@ -2851,7 +2945,11 @@ calwrap.addEventListener('contextmenu', e=>{ if(lpTarget(e.target)) e.preventDef
 
 /* 좌우 스와이프로 이동 */
 let tx=0, ty=0;
-calwrap.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
+calwrap.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; tMoved=false; }, {passive:true});
+calwrap.addEventListener('touchmove', e=>{
+  const t=e.touches[0];
+  if(Math.abs(t.clientX-tx) > 10 || Math.abs(t.clientY-ty) > 10) tMoved = true;
+}, {passive:true});
 calwrap.addEventListener('touchend', e=>{
   const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
   if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.5) moveWeeks(dx<0 ? 1 : -1);
