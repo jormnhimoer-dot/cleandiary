@@ -45,6 +45,16 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .tb-btn{position:relative}
 .tb-btn.warn::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;
   border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #1e293b}
+/* ---------- 위쪽 알림 띠 (새 버전 / 저장 경고) ---------- */
+.topmsg{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:12.5px;font-weight:700;line-height:1.45}
+.topmsg .g{flex:1}
+.topmsg button{border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:800;white-space:nowrap}
+.topmsg.warn{background:#b91c1c;color:#fff}
+.topmsg.warn button{background:#fff;color:#b91c1c}
+.topmsg.blue{background:#0ea5e9;color:#fff}
+.topmsg.blue button{background:#fff;color:#0369a1}
+.okwarn{background:#eff6ff;border:1.5px solid #bfdbfe;color:#1e3a8a;border-radius:12px;
+  padding:11px 12px;font-size:12.5px;font-weight:700;line-height:1.5;margin-bottom:12px}
 .bkwarn{background:#fef2f2;border:1.5px solid #fecaca;color:#991b1b;border-radius:12px;
   padding:11px 12px;font-size:12.5px;font-weight:700;line-height:1.5;margin-bottom:12px}
 
@@ -455,6 +465,8 @@ button{border:none;background:none;cursor:pointer;padding:0}
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
   </header>
+  <div class="topmsg warn" id="guardBar" style="display:none"></div>
+  <div class="topmsg blue" id="updBar" style="display:none"></div>
 
   <div class="backdrop" id="backdrop"></div>
   <section class="banner" id="banner"><div class="banner-inner" id="bannerInner"></div></section>
@@ -529,29 +541,250 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
+const APP_VER = 'v19';
 const KEY = 'cleandiary.v1';
+const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
+const SNAP_KEEP = 6;
 const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, hist: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
-let D = load();
+
+/* 저장 잠금 — 읽기에 실패했거나 다른 화면이 더 최신일 때 켜집니다.
+   잠긴 동안에는 아무것도 쓰지 않습니다. 빈 내용이 멀쩡한 데이터를 덮어쓰던 사고를 막습니다. */
+let SAVE_LOCK = '';
+let MY_REV = 0;          /* 이 화면이 아는 마지막 저장 번호 */
+let RESCUE = null;       /* 두 번째 저장소에서 찾아낸 내용 */
+
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return undefined; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+function fillDefaults(p){
+  const d = Object.assign(structuredClone(DEFAULT_DATA), p||{});
+  d.ui = Object.assign({ tab:0, colorBy:'site', lastBackup:'' }, (p&&p.ui)||{});  /* ui는 통째로 덮이지 않게 병합 */
+  d.done = d.done || {};
+  d.hist = d.hist || {};                       /* 월별 기록(확정된 달) — 옛 백업에는 없습니다 */
+  d.personal = d.personal || {}; d.expense = d.expense || {};
+  d.order = d.order || {}; d.memos = d.memos || {};
+  d.offdays = d.offdays || {}; d.settle = d.settle || {}; d.once = d.once || {};
+  if(!Array.isArray(d.sites)) d.sites = [];
+  return d;
+}
+/* 들어 있는 양 — 갑자기 비는 사고를 알아채는 데 씁니다 */
+function bulk(d){
+  if(!d || typeof d !== 'object') return 0;
+  let n = Array.isArray(d.sites) ? d.sites.length : 0;
+  ['once','personal','expense'].forEach(k=>{ n += Object.keys(d[k]||{}).length; });
+  return n;
+}
 
 function load(){
+  const raw = lsGet(KEY);
+  if(raw === undefined){ SAVE_LOCK = '저장소를 열 수 없습니다'; return structuredClone(DEFAULT_DATA); }
+  if(raw === null) return structuredClone(DEFAULT_DATA);       /* 진짜 처음 열었을 때 — 정상입니다 */
   try{
-    const raw = localStorage.getItem(KEY);
-    if(!raw) return structuredClone(DEFAULT_DATA);
     const p = JSON.parse(raw);
-    const d = Object.assign(structuredClone(DEFAULT_DATA), p);
-    d.ui = Object.assign({ tab:0, colorBy:'site', lastBackup:'' }, p.ui||{});   /* ui는 통째로 덮이지 않게 병합 */
-    d.done = d.done || {};
-    d.hist = d.hist || {};                       /* 월별 기록(확정된 달) — 옛 백업에는 없습니다 */
-    d.personal = d.personal || {}; d.expense = d.expense || {};
-    d.order = d.order || {}; d.memos = d.memos || {};
+    if(!p || typeof p !== 'object') throw 0;
+    const d = fillDefaults(p);
+    MY_REV = (d.ui && d.ui.rev) || 0;
     return d;
-  }catch(e){ return structuredClone(DEFAULT_DATA); }
+  }catch(e){
+    SAVE_LOCK = '저장된 내용을 읽지 못했습니다';                 /* 이 경우 절대 덮어쓰지 않습니다 */
+    return structuredClone(DEFAULT_DATA);
+  }
 }
+let D = load();
+
 let saveTimer = null;
-function save(now){
+function save(now, force){
   clearTimeout(saveTimer);
-  const doIt = () => { try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){ toast('저장 공간이 부족합니다'); } };
-  if(now) doIt(); else saveTimer = setTimeout(doIt, 250);
+  if(SAVE_LOCK && !force) return;
+  if(now) doSave(force); else saveTimer = setTimeout(()=>doSave(force), 250);
+}
+function doSave(force){
+  if(SAVE_LOCK && !force) return;
+  const raw = lsGet(KEY);
+  let cur = null;
+  if(raw){ try{ cur = JSON.parse(raw); }catch(e){ cur = null; } }
+  const curRev = (cur && cur.ui && cur.ui.rev) || 0;
+
+  if(!force){
+    /* ① 예전에 열어둔 다른 화면이 나중에 저장했다면, 그 위에 덮어쓰지 않습니다 */
+    if(cur && curRev > MY_REV){
+      SAVE_LOCK = '다른 화면에서 바뀐 내용이 있습니다';
+      showGuard(); return;
+    }
+    /* ② 있던 내용이 통째로 비었으면 저장을 멈춥니다 */
+    if(bulk(cur) >= 3 && bulk(D) === 0){
+      SAVE_LOCK = '내용이 갑자기 비어서 저장을 멈췄습니다';
+      showGuard(); return;
+    }
+  }
+  /* ③ 크게 줄어들 때는 줄기 직전 모습을 꼭 한 벌 남깁니다 */
+  if(cur) snapPut(cur, bulk(cur) - bulk(D) >= 3);
+
+  MY_REV = curRev + 1;
+  D.ui.rev = MY_REV;
+  D.ui.savedAt = Date.now();
+  D.ui.ver = APP_VER;
+  const s = JSON.stringify(D);
+  if(!lsSet(KEY, s)){
+    snapTrim(1);                                  /* 자리가 모자라면 오래된 보관본부터 비웁니다 */
+    if(!lsSet(KEY, s)){ toast('저장 공간이 부족합니다'); return; }
+  }
+  idbPut(s);
+  SAVE_LOCK = '';
+}
+
+/* ---------- 예전 모습 보관본 ---------- */
+function snapKeys(){
+  const out = [];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(SNAP_PRE) === 0) out.push(k);
+    }
+  }catch(e){}
+  return out.sort();
+}
+function snapTrim(keep){
+  const ks = snapKeys();
+  const n = (keep === undefined) ? SNAP_KEEP : keep;
+  while(ks.length > n) lsDel(ks.shift());
+}
+/* 그날 첫 저장 때(또는 내용이 크게 줄 때) 바뀌기 직전 모습을 보관합니다 */
+function snapPut(cur, force){
+  if(!cur || bulk(cur) === 0) return;
+  const key = SNAP_PRE + todayYmd() + (force ? ('-' + String(Date.now()).slice(-6)) : '');
+  if(!force && lsGet(key) != null) return;        /* 오늘 것은 이미 있습니다 */
+  const body = JSON.stringify({ at: Date.now(), d: cur });
+  if(!lsSet(key, body)){ snapTrim(2); lsSet(key, body); }
+  snapTrim();
+}
+function snapList(){
+  return snapKeys().map(k=>{
+    let v = null;
+    try{ v = JSON.parse(lsGet(k)); }catch(e){}
+    if(!v || !v.d) return null;
+    return { key:k, at:v.at||0, n:bulk(v.d),
+             sites:(v.d.sites||[]).length,
+             exp:Object.keys(v.d.expense||{}).length,
+             once:Object.keys(v.d.once||{}).length };
+  }).filter(Boolean).sort((a,b)=>b.at-a.at);
+}
+
+/* ---------- 두 번째 저장소 (IndexedDB) ----------
+   브라우저가 한쪽 저장소만 비우는 경우가 있어, 같은 내용을 한 벌 더 넣어 둡니다. */
+let idbDB = null;
+function idbOpen(){
+  return new Promise(res=>{
+    if(idbDB) return res(idbDB);
+    let done = false;
+    const fin = v => { if(!done){ done = true; res(v); } };
+    try{
+      if(!window.indexedDB) return fin(null);
+      const rq = indexedDB.open('cleandiary', 1);
+      rq.onupgradeneeded = () => { try{ rq.result.createObjectStore('kv'); }catch(e){} };
+      rq.onsuccess = () => { idbDB = rq.result; fin(idbDB); };
+      rq.onerror = () => fin(null);
+      setTimeout(()=>fin(idbDB), 3000);
+    }catch(e){ fin(null); }
+  });
+}
+function idbPut(s){
+  idbOpen().then(db=>{
+    if(!db) return;
+    try{ db.transaction('kv','readwrite').objectStore('kv').put(s, 'data'); }catch(e){}
+  });
+}
+function idbGet(){
+  return new Promise(res=>{
+    idbOpen().then(db=>{
+      if(!db) return res(null);
+      try{
+        const rq = db.transaction('kv','readonly').objectStore('kv').get('data');
+        rq.onsuccess = () => res(rq.result || null);
+        rq.onerror = () => res(null);
+      }catch(e){ res(null); }
+    });
+  });
+}
+/* 켤 때 — 저쪽에 내용이 더 남아 있으면 알려 줍니다 */
+function idbRescue(){
+  idbGet().then(s=>{
+    if(!s) return;
+    let p = null;
+    try{ p = JSON.parse(s); }catch(e){ return; }
+    const there = bulk(p), here = bulk(D);
+    if(there > here){
+      RESCUE = p;
+      const el = $('#updBar'); if(!el) return;
+      el.className = 'topmsg warn'; el.style.display = 'flex';
+      el.innerHTML = '<span class="g">다른 저장소에 내용이 더 남아 있습니다 (' + there + '건 · 지금은 ' + here + '건)</span>' +
+        '<button onclick="applyRescue()">되살리기</button>';
+      barFit();
+    }
+  });
+}
+function applyRescue(){
+  if(!RESCUE) return;
+  if(!confirm('찾아낸 내용으로 되돌립니다. 지금 상태도 한 벌 보관해 두니 다시 돌아올 수 있습니다.')) return;
+  const cur = JSON.parse(JSON.stringify(D));
+  snapPut(cur, true);
+  D = fillDefaults(RESCUE);
+  SAVE_LOCK = '';
+  save(true, true);
+  location.reload();
+}
+
+/* ---------- 경고 띠 ---------- */
+function showGuard(){
+  const el = document.getElementById('guardBar'); if(!el) return;
+  el.style.display = 'flex';
+  el.innerHTML = '<span class="g">' + SAVE_LOCK + ' — 지금 넣으신 내용이 저장되지 않습니다.</span>' +
+    '<button onclick="openMenu()">해결하기</button>';
+  barFit();
+}
+/* 위쪽 띠가 생기면 달력 칸 높이를 다시 재서 3주가 그대로 보이게 합니다 */
+function barFit(){
+  try{ fitWeeks(); renderCal(); }catch(e){}
+}
+/* 다른 화면이 저장하면 곧바로 알아챕니다 */
+window.addEventListener('storage', e=>{
+  if(e.key !== KEY || !e.newValue) return;
+  let p = null;
+  try{ p = JSON.parse(e.newValue); }catch(err){ return; }
+  if(((p.ui && p.ui.rev) || 0) > MY_REV){
+    SAVE_LOCK = '다른 화면에서 바뀐 내용이 있습니다';
+    showGuard();
+  }
+});
+
+/* ---------- 새 버전 받기 ---------- */
+function forceRefresh(){
+  toast('새 버전을 확인합니다…');
+  save(true);
+  const go = () => setTimeout(()=>{ location.replace(location.pathname + '?v=' + Date.now()); }, 300);
+  try{
+    const jobs = [];
+    if(window.caches) jobs.push(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+      jobs.push(navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.update().catch(()=>{})))));
+    Promise.all(jobs).then(go, go);
+    setTimeout(go, 4000);
+  }catch(e){ go(); }
+}
+function checkUpdate(){
+  fetch('index.html?c=' + Date.now(), { cache:'no-store' })
+    .then(r=> r.ok ? r.text() : null)
+    .then(t=>{
+      if(!t) return;
+      const m = t.match(new RegExp("APP_VER = '([^']+)'"));
+      if(!m || m[1] === APP_VER) return;
+      const el = document.getElementById('updBar'); if(!el || RESCUE) return;
+      el.className = 'topmsg blue'; el.style.display = 'flex';
+      el.innerHTML = '<span class="g">새 버전이 있습니다 (' + esc(m[1]) + ')</span>' +
+        '<button onclick="forceRefresh()">받기</button>';
+      barFit();
+    }).catch(()=>{});
 }
 const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
 
@@ -2572,7 +2805,15 @@ function openMenu(){
         ? '아직 <b>백업을 한 번도 안 하셨습니다.</b> 이 앱의 데이터는 이 브라우저 안에만 있어서, 방문기록을 지우거나 폰을 바꾸면 전부 사라집니다.'
         : `마지막 백업이 <b>${daysSinceBackup()}일 전</b>입니다. 그 사이 입력하신 내용은 아직 어디에도 저장돼 있지 않습니다.`}<br>
       아래 <b>백업 파일 내보내기</b>를 한 번 눌러 주세요.</div>` : ''}
+    ${SAVE_LOCK ? `<div class="bkwarn">${SAVE_LOCK} — <b>지금 넣으신 내용이 저장되지 않고 있습니다.</b><br>
+      아래 <b>새 버전 확인 · 새로고침</b>을 눌러 앱을 다시 열어 주세요. 그래도 그대로면
+      <b>예전 상태로 되돌리기</b>에서 멀쩡했던 때를 고르시면 됩니다.</div>` : ''}
+    <div class="okwarn"><b>홈 화면 아이콘을 지우지 마세요.</b><br>
+      아이콘을 지우면 <b>앱에 넣으신 내용도 함께 지워집니다.</b> 새 버전은 아래
+      <b>새 버전 확인 · 새로고침</b>으로 받으세요.</div>
     <button class="btn pri" style="margin-bottom:10px" onclick="openSiteList()">현장 관리 (${cnt}곳)</button>
+    <button class="btn sec" style="margin-bottom:10px" onclick="openRestore()">예전 상태로 되돌리기 (${snapList().length}개 보관됨)</button>
+    <button class="btn sec" style="margin-bottom:10px" onclick="forceRefresh()">새 버전 확인 · 새로고침</button>
     <div class="swrow" style="margin-bottom:10px">
       <div><b>달력 색을 현장별로</b><div class="hint">끄면 예전처럼 시간대(아침·오후·저녁) 색으로 보입니다</div></div>
       <div class="sw ${bySite()?'on':''}" onclick="toggleColorBy(this)"></div>
@@ -2590,9 +2831,12 @@ function openMenu(){
       가끔 <b>백업 파일 내보내기</b>로 파일을 보관해 두세요.
     </div>
     <div class="hint" style="margin-top:14px">
-      <b>홈 화면에 추가</b> — 아이폰: 공유 → 홈 화면에 추가 / 안드로이드: 메뉴 → 앱 설치. 앱처럼 전체화면으로 열립니다.
+      <b>홈 화면에 추가</b> — 아이폰: 공유 → 홈 화면에 추가 / 안드로이드: 메뉴 → 앱 설치. 앱처럼 전체화면으로 열립니다.<br><br>
+      <b style="color:#b91c1c">한 번 추가한 뒤에는 아이콘을 지웠다 다시 넣지 마세요.</b> 아이폰은 아이콘을 지울 때
+      그 앱에 저장된 내용까지 함께 지웁니다. 새 버전이 필요하면 위의 <b>새 버전 확인 · 새로고침</b>을 쓰세요.
     </div>
     <div class="hint" style="margin-top:14px">공휴일은 2026~2030년까지 들어 있습니다.</div>
+    <div class="hint" style="margin-top:10px;text-align:center;font-weight:800;color:#0f172a">cleandiary ${APP_VER}${lastSavedLabel()}</div>
   `, ()=>{
     $('#importFile').addEventListener('change', e=>{
       const f = e.target.files[0]; if(!f) return;
@@ -2602,15 +2846,62 @@ function openMenu(){
           const p = JSON.parse(r.result);
           if(!p || typeof p!=='object' || !('sites' in p)) throw 0;
           if(!confirm('현재 데이터를 이 백업으로 덮어씁니다. 계속할까요?')) return;
-          D = Object.assign(structuredClone(DEFAULT_DATA), p);
-          D.personal = D.personal || {}; D.expense = D.expense || {}; D.order = D.order || {}; D.memos = D.memos || {};
-          save(true); closeSheet(); location.reload();
+          snapPut(JSON.parse(JSON.stringify(D)), true);   /* 덮어쓰기 전 지금 모습을 남겨 둡니다 */
+          D = fillDefaults(p);
+          SAVE_LOCK = '';
+          save(true, true); closeSheet(); location.reload();
         }catch(err){ toast('백업 파일이 아닙니다'); }
       };
       r.readAsText(f);
     });
   });
 }
+/* ---------- 예전 상태로 되돌리기 ---------- */
+function stampLabel(t){
+  const d = new Date(t), h = d.getHours();
+  const day = (ymd(d) === todayYmd()) ? '오늘' : (d.getMonth()+1) + '월 ' + d.getDate() + '일';
+  return day + ' ' + (h < 12 ? '오전' : '오후') + ' ' + ((h % 12) || 12) + ':' + pad(d.getMinutes());
+}
+function lastSavedLabel(){
+  const t = D.ui && D.ui.savedAt;
+  return t ? ' · 마지막 저장 ' + stampLabel(t) : '';
+}
+function openRestore(){
+  closeBanner();
+  const list = snapList(), nowN = bulk(D);
+  let h = `<div class="hint" style="margin:0 0 12px">앱은 내용이 바뀔 때마다 <b>바뀌기 직전 모습</b>을 따로 보관해 둡니다.
+      내용이 사라졌거나 잘못 지우셨으면, 아래에서 <b>멀쩡했던 때</b>를 골라 되돌리세요.</div>
+    <div class="mrow" style="margin-bottom:8px">
+      <div class="top"><div class="m">지금</div><span class="tag now">현재</span></div>
+      <div class="s">현장 <b>${D.sites.length}곳</b> · 경비 <b>${Object.keys(D.expense).length}일</b> · 일회성 ${onceCount()}건</div></div>`;
+  if(!list.length){
+    h += `<div class="hint">아직 보관된 것이 없습니다. 오늘부터 하루에 한 벌씩, 그리고 내용이 크게 줄 때마다 쌓입니다.</div>`;
+  }else{
+    h += list.map(x=>`<div class="mrow" style="margin-bottom:8px">
+        <div class="top"><div class="m">${stampLabel(x.at)}</div><span class="tag">보관됨</span></div>
+        <div class="s">현장 <b>${x.sites}곳</b> · 경비 <b>${x.exp}일</b> · 일회성 ${x.once}건</div>
+        ${x.n > nowN ? `<div class="s" style="color:#b91c1c;font-weight:700">지금보다 ${x.n - nowN}건이 더 있습니다</div>` : ''}
+        <button class="btn sec" style="margin-top:8px" onclick="restoreSnap('${x.key}')">이 상태로 되돌리기</button>
+      </div>`).join('');
+  }
+  h += `<div class="hint" style="margin-top:10px">되돌리기 전에 지금 상태도 자동으로 한 벌 보관합니다. 잘못 눌러도 다시 돌아올 수 있습니다.<br><br>
+      보관본은 이 기기 안에만 있습니다. 폰을 바꾸거나 홈 화면 아이콘을 지우면 함께 사라지니,
+      <b>백업 파일 내보내기</b>도 가끔 해 두세요.</div>`;
+  openSheet('예전 상태로 되돌리기', h);
+}
+function restoreSnap(key){
+  let v = null;
+  try{ v = JSON.parse(lsGet(key)); }catch(e){}
+  if(!v || !v.d){ toast('보관본을 읽지 못했습니다'); return; }
+  if(!confirm('이 상태로 되돌립니다. 지금 내용도 한 벌 보관해 두니 다시 돌아올 수 있습니다.')) return;
+  snapPut(JSON.parse(JSON.stringify(D)), true);
+  D = fillDefaults(v.d);
+  SAVE_LOCK = '';
+  save(true, true);
+  closeSheet();
+  location.reload();
+}
+
 /* ---------- 백업 알림 ---------- */
 function markBackup(){ D.ui.lastBackup = todayYmd(); save(true); refreshBackupBadge(); }
 function daysSinceBackup(){
@@ -2830,8 +3121,10 @@ function applyImportText(){
     const p = JSON.parse(t);
     if(!p || typeof p!=='object' || !('sites' in p)) throw 0;
     if(!confirm('현재 데이터를 이 백업으로 덮어씁니다. 계속할까요?')) return;
-    D = Object.assign(structuredClone(DEFAULT_DATA), p);
-    save(true); closeSheet(); location.reload();
+    snapPut(JSON.parse(JSON.stringify(D)), true);        /* 덮어쓰기 전 지금 모습을 남겨 둡니다 */
+    D = fillDefaults(p);
+    SAVE_LOCK = '';
+    save(true, true); closeSheet(); location.reload();
   }catch(e){ toast('백업 내용이 아닙니다' ); }
 }
 
@@ -3011,6 +3304,8 @@ document.addEventListener('visibilitychange', ()=>{
   const away = awayAt ? Date.now() - awayAt : 0;
   awayAt = 0;
   if(away > 30*60*1000 || todayYmd() !== bootDay) backToToday();
+  /* 홈 화면 앱은 다시 열어도 새로 안 불러옵니다 — 깨어날 때마다 새 버전이 있는지 확인합니다 */
+  if(away > 60*1000) setTimeout(checkUpdate, 400);
 });
 window.addEventListener('pageshow', e=>{                 /* 자던 화면을 깨워서 열 때 */
   if(e.persisted) backToToday();
@@ -3023,6 +3318,9 @@ freezeMonths();          /* 지난 달 정산을 확정해 둡니다 */
 render();
 settleScroll(todayYmd());
 refreshBackupBadge();
+if(SAVE_LOCK) showGuard();          /* 저장이 잠겼으면 곧바로 알립니다 */
+idbRescue();                        /* 두 번째 저장소에 더 남아 있는지 봅니다 */
+setTimeout(checkUpdate, 1200);      /* 새 버전이 올라왔는지 확인합니다 */
 </script>
 </body>
 </html>
