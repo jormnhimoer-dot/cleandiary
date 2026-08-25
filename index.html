@@ -240,6 +240,10 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .wdc.on{background:#0284c7}
 .wdn{margin:6px 0 0;color:#334155;font-size:12.5px;font-weight:700;letter-spacing:-.2px;
   background:#f1f5f9;border-radius:8px;padding:7px 9px}
+/* 펼친 칸 — 넘치는 일정을 다 보여줍니다 */
+.cell.exp{overflow:visible}
+.week.exp{min-height:0}
+.evmore.tap{white-space:nowrap}
 .ck.plan{background:#fff7ed;color:#c2410c;box-shadow:inset 0 0 0 1.5px #fdba74}
 .dawnsep{height:0;border-top:2px dotted #94a3b8;margin:2px 1px 1px}
 
@@ -832,7 +836,8 @@ const calWeeks = () => WEEKS_BACK + WEEKS_FWD + 1;
 let SEL = todayYmd();
 let panelOpen = false;
 let tMoved = false;                 /* 손가락이 움직였으면(스크롤) 줄 누르기를 무시합니다 */
-const WDOPEN = {};                  /* 정산 탭에서 날짜를 펼쳐 둔 줄 */
+const WDOPEN = {};
+let EXPALL = false;                 /* 달력의 모든 칸을 펼쳐 둔 상태 */                  /* 정산 탭에서 날짜를 펼쳐 둔 줄 */
 let searchQ = '';
 let SMY = new Date().getFullYear(), SMM = new Date().getMonth();   // 정산 보는 달
 
@@ -1052,11 +1057,11 @@ function renderCal(){
   const first = calStart();
   for(let w=0; w<calWeeks(); w++){
     const wk0 = addDays(first, w*7);
-    h += `<div class="week" data-wk="${ymd(wk0)}">`;
+    h += `<div class="week${EXPALL?' exp':''}" data-wk="${ymd(wk0)}">`;
     for(let i=0; i<7; i++){
       const d = addDays(wk0, i), s = ymd(d);
       const hol = holidayOf(s), off = !!D.offdays[s];
-      const cls = ['cell', s===todayYmd()?'today':'', (panelOpen && s===SEL)?'sel':'',
+      const cls = ['cell', EXPALL?'exp':'', s===todayYmd()?'today':'', (panelOpen && s===SEL)?'sel':'',
                    d.getDay()===0?'sun':'', d.getDay()===6?'sat':'',
                    hol?'hol':'', off?'off':'', (TAB===0 && dayAllDone(d,s))?'alldone':''].filter(Boolean).join(' ');
       const tag = hol ? `<div class="holname">${esc(hol)}</div>`
@@ -1150,7 +1155,7 @@ function cellBody(d, s){
   }
   if(TAB===1){                                   /* 스케줄 — 일회성 + 개인 */
     const os = onceList(s), ps = persOn(s);
-    const room = maxInCell();
+    const room = EXPALL ? 99 : maxInCell();
     let out = '', used = 0;
     for(const o of os){
       if(used >= room) break;
@@ -1168,8 +1173,10 @@ function cellBody(d, s){
       const cut = out.lastIndexOf('<div class="ev ');
       if(cut > -1) out = out.slice(0, cut);
       const rest2 = os.length + ps.length - Math.max(0, used - 1);
-      out += `<button type="button" class="evmore tap" data-act="more" data-date="${s}">+${rest2} 더보기</button>`;
+      out += `<button type="button" class="evmore tap" data-act="more" data-date="${s}">+${rest2} \u25be</button>`;
     }
+    if(EXPALL && os.length + ps.length > maxInCell())
+      out += `<button type="button" class="evmore tap" data-act="less" data-date="${s}">\u25b4 접기</button>`;
     return out;
   }
   const list = cellItems(d);
@@ -1185,7 +1192,7 @@ function cellBody(d, s){
 
   const chips = list.map(evHtml);
 
-  const room = maxInCell();
+  const room = EXPALL ? 99 : maxInCell();
   let out = '';
   chips.slice(0, room).forEach((html, i)=>{
     if(lead && i === lead) out += '<div class="dawnsep"></div>';
@@ -1194,8 +1201,10 @@ function cellBody(d, s){
   if(chips.length > room){
     const cut = out.lastIndexOf('<div class="ev ');
     if(cut > -1) out = out.slice(0, cut);
-    out += `<button type="button" class="evmore tap" data-act="more" data-date="${s}">+${chips.length - room + 1} 더보기</button>`;
+    out += `<button type="button" class="evmore tap" data-act="more" data-date="${s}">+${chips.length - room + 1} \u25be</button>`;
   }
+  if(EXPALL && chips.length > maxInCell())
+    out += `<button type="button" class="evmore tap" data-act="less" data-date="${s}">\u25b4 접기</button>`;
   return out;
 }
 
@@ -2158,13 +2167,14 @@ function onAct(e){
   if(act==='gosite'){ editSite(el.dataset.id); return; }
   if(act==='gomemo'){ SEL = date; searchQ = ''; panelOpen = true; render(); scrollToDate(date); return; }
   /* 칸에 다 안 들어간 일정 — '+3 더보기'를 누르면 바로 그날 목록을 펼칩니다 */
-  if(act==='more'){
+  if(act==='more' || act==='less'){
+    /* +N 을 누르면 달력의 모든 칸을 펼치고, 접기를 누르면 되돌립니다 (아래 패널은 안 뜹니다) */
     e.stopPropagation();
     clearTimeout(dayTapTimer); dayTapTimer = null; lastTap = {};
-    if(SEL !== date){ ONCE_EDIT = null; PERS_EDIT = null; EXP_EDIT = null; }
-    SEL = date; panelOpen = true; closeBanner();
-    /* 누르는 도중에 달력을 통째로 다시 그리면 폰에서 눌림이 씹힙니다 — 한 박자 뒤에 그립니다 */
-    setTimeout(()=>{ renderCal(); renderPanel(); }, 40);
+    EXPALL = (act==='more');
+    panelOpen = false; closeBanner();
+    /* 누르는 도중에 달력을 다시 그리면 폰에서 눌림이 씹힙니다 — 한 박자 뒤에 그립니다 */
+    setTimeout(()=>{ renderCal(); renderPanel(); scrollToDate(date); }, 40);
     return;
   }
   if(act==='day'){
