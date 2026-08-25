@@ -18,7 +18,9 @@
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;overscroll-behavior:none}
+/* 페이지 자체는 절대 스크롤되지 않게 잠급니다 — 앱이 화면 밖으로 밀려나던 원인 */
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;position:fixed;
+  top:0;left:0;overscroll-behavior:none}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   background:var(--bg); color:var(--ink); font-size:15px; line-height:1.4;
@@ -26,12 +28,16 @@ body{
 button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
 button{border:none;background:none;cursor:pointer;padding:0}
 
-#app{display:flex;flex-direction:column;height:100dvh;max-width:600px;margin:0 auto;background:var(--bg);position:relative;overflow:hidden}
+/* 화면 네 귀퉁이에 못 박아 둡니다 — 아이폰이 화면 높이를 잘못 알려줘도 넘칠 수 없습니다.
+   --vph 는 실제로 보이는 높이(visualViewport)로 재서 넣습니다. */
+#app{display:flex;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;
+  height:var(--vph,100%);max-width:600px;margin:0 auto;background:var(--bg);overflow:hidden}
 
 /* ---------- top bar ---------- */
 .topbar{
   flex:0 0 auto;display:flex;align-items:center;gap:6px;
-  padding:calc(var(--safe-t) + 8px) 10px 8px;background:var(--dark);color:#fff;
+  /* 상태바 아래 여백도 최소값을 못 박습니다 */
+  padding:calc(max(var(--safe-t), 20px) + 8px) 10px 8px;background:var(--dark);color:#fff;
 }
 .topbar .title{font-weight:700;font-size:16px;letter-spacing:.3px}
 .topbar .range{font-size:12px;color:#94a3b8;margin-left:2px}
@@ -65,7 +71,7 @@ button{border:none;background:none;cursor:pointer;padding:0}
   max-height:0;overflow:hidden;transition:max-height .22s ease;
 }
 .banner.open{max-height:82dvh;overflow-y:auto}
-.banner-inner{padding:calc(var(--safe-t) + 14px) 16px 18px}
+.banner-inner{padding:calc(max(var(--safe-t), 20px) + 14px) 16px 18px}
 .bn-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
 /* 현장 삭제 — X를 잘못 누르지 않도록 사이를 벌려 둠 */
 .bn-del{flex:0 0 auto;margin-left:auto;margin-right:16px;font-size:12.5px;font-weight:800;padding:7px 12px;border-radius:9px;background:#fee2e2;color:#b91c1c;border:1.5px solid #fecaca}
@@ -111,7 +117,7 @@ button{border:none;background:none;cursor:pointer;padding:0}
 /* ---------- calendar ---------- */
 .calwrap{position:relative;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 6px 4px;
   display:flex;flex-direction:column}
-.calwrap.list{display:block}
+.calwrap.list{display:block;padding-top:12px}
 .pick{display:flex;gap:8px;margin:2px 0 12px}
 .pick button{flex:1;border:1.5px solid #e2e8f0;background:#fff;border-radius:12px;padding:12px 6px;font-weight:800;font-size:13px;color:#334155}
 .pick button.on{background:#0f172a;color:#fff;border-color:#0f172a}
@@ -299,7 +305,8 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .tabbar{
   flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);
   background:var(--card);border-top:1px solid var(--line);
-  padding:6px 0 calc(var(--safe-b) + 6px);
+  /* 아이폰이 홈바 높이를 0으로 알려줄 때가 있어 최소값을 못 박아 둡니다 */
+  padding:6px 0 calc(max(var(--safe-b), 20px) + 6px);
 }
 .tab{display:flex;flex-direction:column;align-items:center;gap:2px;color:#94a3b8;padding:2px 0}
 .tab.on{color:var(--dark)}
@@ -310,6 +317,31 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .stsec{font-size:12px;font-weight:800;color:var(--sub);padding:12px 8px 6px;display:flex;align-items:center;gap:6px}
 .strow{background:var(--card);border-radius:11px;padding:10px 12px;margin:0 6px 7px}
 .strow.late{box-shadow:inset 3px 0 0 #ef4444}
+/* ---------- 정산 보기 전환 / 입금 예정 ---------- */
+.stview{display:flex;gap:6px;margin:0 6px 10px;background:#e2e8f0;border-radius:11px;padding:4px}
+.stview button{flex:1;font-size:12.5px;font-weight:800;padding:8px 0;border-radius:8px;color:#64748b}
+.stview button.on{background:#fff;color:#0f172a;box-shadow:0 1px 4px rgba(15,23,42,.14)}
+.pysum{display:flex;gap:6px;margin:0 6px 10px}
+.pysum div{flex:1;min-width:0;background:var(--card);border-radius:11px;padding:9px 8px;text-align:center}
+.pysum .t{font-size:10.5px;font-weight:800;color:#94a3b8;white-space:nowrap}
+.pysum .v{font-size:15.5px;font-weight:900;margin-top:3px;white-space:nowrap}
+.pysum .in .v{color:#0f172a}
+.pysum .got .v{color:#047857}
+.pysum .yet .v{color:#b91c1c}
+.pydate{display:inline-block;min-width:56px;font-size:12px;font-weight:900;color:#fff;
+  background:#0f172a;border-radius:7px;padding:2px 7px;margin-right:7px;vertical-align:1px;text-align:center}
+.strow.py.done .pydate{background:#94a3b8}
+.strow.py.late .pydate{background:#b91c1c}
+.mtag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;
+  background:#e0f2fe;color:#0369a1;margin-right:6px}
+.mtag.pre{background:#fef3c7;color:#92400e}
+.mixwarn{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;
+  background:#fef3c7;color:#92400e;margin-left:6px}
+.paynote{font-size:11.5px;font-weight:800;color:#0369a1;margin-top:4px}
+.paynote.none{color:#b45309}
+.nodaybox{background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;margin:0 6px 10px;padding:11px 12px}
+.nodaybox .lt{font-size:12px;font-weight:800;color:#92400e;margin-bottom:6px}
+.nodaybox .li{font-size:13px;font-weight:800;color:#78350f;padding:4px 0;text-decoration:underline;text-decoration-style:dotted}
 .latetag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;
   background:#fee2e2;color:#b91c1c;margin-left:6px;vertical-align:1px}
 .latebox{background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;margin:0 6px 10px;padding:11px 12px}
@@ -541,7 +573,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v19';
+const APP_VER = 'v20';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -745,7 +777,7 @@ function showGuard(){
 }
 /* 위쪽 띠가 생기면 달력 칸 높이를 다시 재서 3주가 그대로 보이게 합니다 */
 function barFit(){
-  try{ fitWeeks(); renderCal(); }catch(e){}
+  try{ relayout(); }catch(e){}
 }
 /* 다른 화면이 저장하면 곧바로 알아챕니다 */
 window.addEventListener('storage', e=>{
@@ -1232,6 +1264,23 @@ function skipDate(id, dateStr){
 /* ---------- 렌더 ---------- */
 let WKH = 126, MAXCHIP = 4;
 /* 화면에 3주가 꽉 차도록 칸 높이를 맞춥니다 (패널이 닫혀 있을 때만 다시 잽니다) */
+/* 실제로 보이는 높이를 재서 앱 틀에 넣습니다 — 아이폰이 잘못 알려줘도 여기서 바로잡힙니다 */
+function setVH(){
+  const vv = window.visualViewport;
+  const h = Math.round((vv && vv.height) ? vv.height : (window.innerHeight || 0));
+  if(h > 200) document.documentElement.style.setProperty('--vph', h + 'px');
+}
+/* 화면이 틀어졌을 때 스스로 제자리로 돌아오게 합니다 */
+let relayoutTimer = null;
+function relayout(){
+  clearTimeout(relayoutTimer);
+  relayoutTimer = setTimeout(()=>{
+    setVH();
+    const before = WKH;
+    fitWeeks();
+    if(WKH !== before) renderCal();
+  }, 60);
+}
 function fitWeeks(){
   if(TAB===3 || panelOpen || SEARCH_ON) return;
   const dow = calwrap.querySelector('.dow');
@@ -1770,21 +1819,23 @@ function overdueOf(name){
   return res;
 }
 
-function ckBox(scope, kind){
-  const st = settleStore();
+function ckBox(scope, kind, mk){
+  const st = settleStoreOf(mk);
   return scope==='site' ? (kind==='inv' ? st.inv : st.paid) : (kind==='inv' ? st.oinv : st.opaid);
 }
-function ckDateBox(scope, kind){
-  const st = settleStore();
+function ckDateBox(scope, kind, mk){
+  const st = settleStoreOf(mk);
   return scope==='site' ? (kind==='inv' ? st.invD : st.paidD) : (kind==='inv' ? st.oinvD : st.opaidD);
 }
 let CKSEL = null;
-function ckMenu(scope, kind, k){
-  CKSEL = { scope, kind, k };
+function ckMenu(scope, kind, k, mk){
+  CKSEL = { scope, kind, k, mk: mk || settleKey() };
   const nm = kind==='inv' ? '계산서 발행' : '입금 받음';
-  const cur = ckDateBox(scope, kind)[k] || todayYmd();
+  const cur = ckDateBox(scope, kind, CKSEL.mk)[k] || todayYmd();
+  const wm = CKSEL.mk;
   openSheet(nm, `
-    <div class="hint" style="margin-bottom:12px"><b>${esc(k)}</b> — ${nm} 날짜입니다.</div>
+    <div class="hint" style="margin-bottom:12px"><b>${esc(k)}</b> — ${nm} 날짜입니다.<br>
+      <b>${wm.slice(0,4)}년 ${+wm.slice(5,7)}월분</b>으로 기록됩니다.</div>
     <div class="field"><label>날짜</label><input type="date" id="ckDate"></div>
     <div class="bn-actions" style="margin-top:18px">
       <button class="btn dan" onclick="ckClear()">표시 지우기</button>
@@ -1794,18 +1845,18 @@ function ckMenu(scope, kind, k){
 function ckSave(){
   if(!CKSEL) return;
   const v = ($('#ckDate')||{}).value || todayYmd();
-  ckBox(CKSEL.scope, CKSEL.kind)[CKSEL.k] = true;
-  ckDateBox(CKSEL.scope, CKSEL.kind)[CKSEL.k] = v;
+  ckBox(CKSEL.scope, CKSEL.kind, CKSEL.mk)[CKSEL.k] = true;
+  ckDateBox(CKSEL.scope, CKSEL.kind, CKSEL.mk)[CKSEL.k] = v;
   CKSEL = null; save(true); closeSheet(); renderSettle(); toast('날짜를 저장했습니다');
 }
 function ckClear(){
   if(!CKSEL) return;
-  delete ckBox(CKSEL.scope, CKSEL.kind)[CKSEL.k];
-  delete ckDateBox(CKSEL.scope, CKSEL.kind)[CKSEL.k];
+  delete ckBox(CKSEL.scope, CKSEL.kind, CKSEL.mk)[CKSEL.k];
+  delete ckDateBox(CKSEL.scope, CKSEL.kind, CKSEL.mk)[CKSEL.k];
   CKSEL = null; save(true); closeSheet(); renderSettle(); toast('표시를 지웠습니다');
 }
-function settleStore(){
-  const k = settleKey();
+function settleStoreOf(mk){
+  const k = mk || settleKey();
   D.settle[k] = D.settle[k] || {};
   const s = D.settle[k];
   s.inv = s.inv || {}; s.paid = s.paid || {};
@@ -1815,6 +1866,26 @@ function settleStore(){
   s.oinvD = s.oinvD || {}; s.opaidD = s.opaidD || {};
   return s;
 }
+function settleStore(){ return settleStoreOf(settleKey()); }
+
+/* ---------- 정산금 '받는 날' ----------
+   payType 'post' = 후불: 그 달 일한 것을 **다음 달** 그 날에 받음 (기본)
+   payType 'pre'  = 선불: 그 달 것을 **그 달** 그 날에 미리 받음 (예: 북가좌 매달 5일)
+   payDay  매월 며칠. 0이면 아직 안 정한 것 */
+const payTypeOf = x => (x && x.payType === 'pre') ? 'pre' : 'post';
+const payDayOf  = x => Math.max(0, Math.min(31, parseInt(x && x.payDay, 10) || 0));
+/* 일한 달(y,m) 것을 실제로 받는 날짜 */
+function payDateFor(payType, payDay, y, m){
+  if(!payDay) return null;
+  const off = (payType === 'pre') ? 0 : 1;
+  const d = new Date(y, m + off, 1);
+  const yy = d.getFullYear(), mm = d.getMonth();
+  return ymd(new Date(yy, mm, Math.min(payDay, daysInMonth(yy, mm))));
+}
+const mdy = v => { const d = v && parseYmd(v); return d ? `${d.getMonth()+1}/${d.getDate()}` : ''; };
+/* 요약 카드처럼 좁은 자리 — 만 단위로 줄여 한 줄에 들어가게 */
+const wonCard = n => (Math.abs(n) >= 10000) ? (Math.round(n/10000)).toLocaleString('ko-KR') + '만원' : won(n) + '원';
+const dayGap = (a,b) => Math.round((parseYmd(a) - parseYmd(b)) / 86400000);
 const DOW_CHIP = ['일','월','화','수','목','금','토'];
 function wdChip(r){
   const ds = r.ds || []; if(!ds.length) return '';
@@ -1843,10 +1914,15 @@ function regularRows(Y, M){
     }
     if(!cnt && !skipN) return;
     const k = (s.name||'').trim() || '(이름 없음)';
-    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim() };
+    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim(), payType:'post', payDay:0, payMix:false };
     g.cnt += cnt; g.skip = (g.skip||0) + skipN; g.skipDs = (g.skipDs||[]).concat(skipDs);
     g.ds = (g.ds||[]).concat(okDs);
     if(!g.invDay && +s.invDay) g.invDay = +s.invDay;
+    const pd = payDayOf(s), pt = payTypeOf(s);
+    if(pd){
+      if(!g.payDay){ g.payDay = pd; g.payType = pt; }
+      else if(g.payDay !== pd || g.payType !== pt) g.payMix = true;
+    }
     g.mins += cnt * (+s.mins || 0);
     g.amount = Math.max(g.amount, parseAmt(s.amount));
     if(s.billing === 'per') g.billing = 'per';
@@ -1863,8 +1939,13 @@ function regularRows(Y, M){
   rows.forEach(r=>{
     const c = (r.client||'').trim();
     if(!c){ gm.set('@'+r.name, r); return; }
-    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'group', invoice:false, slots:new Set() };
+    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'group', invoice:false, slots:new Set(), payType:'post', payDay:0, payMix:false };
     g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.ds = (g.ds||[]).concat(r.ds||[]); if(!g.invDay && r.invDay) g.invDay = r.invDay; g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
+    if(r.payDay){
+      if(!g.payDay){ g.payDay = r.payDay; g.payType = r.payType; }
+      else if(g.payDay !== r.payDay || g.payType !== r.payType) g.payMix = true;
+    }
+    if(r.payMix) g.payMix = true;
     gm.set('#'+c, g);
   });
   const out = [...gm.values()].map(r=>({ ...r, hourly: r.mins ? Math.round(r.total / (r.mins/60)) : null }));
@@ -2034,6 +2115,18 @@ function skipDaysText(list){
 function renderSettle(){
   panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
   calwrap.classList.remove('compact'); calwrap.classList.add('list');
+  const VIEW = (D.ui.settleView === 'pay') ? 'pay' : 'work';
+  const viewSw = `<div class="stview">
+      <button class="${VIEW==='work'?'on':''}" data-act="stview" data-v="work">일한 달</button>
+      <button class="${VIEW==='pay'?'on':''}" data-act="stview" data-v="pay">돈 들어오는 달</button>
+    </div>`;
+  if(VIEW === 'pay'){
+    const keep0 = calwrap.scrollTop;
+    calwrap.innerHTML = viewSw + payViewHTML();
+    if(keep0 > 0) calwrap.scrollTop = keep0;
+    return;
+  }
+
   const st = settleStore();
   const reg = regularRows(), onc = onceRows();
 
@@ -2057,7 +2150,7 @@ function renderSettle(){
 
   const late = reg.map(r=>({ r, od: overdueOf(r.name) })).filter(x=>x.od.months>0);
 
-  let h = '';
+  let h = viewSw;
   if(late.length){
     h += `<div class="latebox"><div class="lt">입금이 밀린 곳 ${late.length}곳</div>` +
       late.sort((a,b)=>b.od.amount-a.od.amount).map(x=>
@@ -2077,6 +2170,7 @@ function renderSettle(){
             : (r.billing==='per'
               ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
               : `월 정액 · 이번 달 ${r.cnt}회 방문`) + (r.amount?'':' · 금액 미입력')}${wdChip(r)}${r.skip?`<button class="skiptag" data-act="skipdays" data-k="${esc(r.name)}">건너뜀 ${r.skip}회 ▾</button>`:''}</div>
+        ${payNote(r)}
         ${wdDates(r)}
         ${r.skip && openSkips.has(r.name) ? `<div class="skipdays">${skipDaysText(r.skipDs)}</div>` : ''}
         ${r.kids ? `<div class="kids">${r.kids.map(k=>`<div class="kid"><span><span class="kidname" data-act="stsite" data-name="${esc(k.name)}">${esc(k.name)}</span>${k.skip?` <button class="skiptag" data-act="skipdays" data-k="${esc(k.name)}">건너뜀 ${k.skip}회 ▾</button>`:''}</span><b>${won(k.total)}원</b></div>${k.skip && openSkips.has(k.name) ? `<div class="skipdays">${skipDaysText(k.skipDs)}</div>` : ''}`).join('')}</div>` : ''}
@@ -2120,6 +2214,101 @@ function renderSettle(){
   const keepTop = calwrap.scrollTop;          /* 현장을 고치고 돌아와도 보던 자리 그대로 */
   calwrap.innerHTML = h;
   if(keepTop > 0) calwrap.scrollTop = keepTop;
+}
+
+/* 일한 달 화면에서 각 줄 아래에 '언제 받는지' 한 줄 */
+function payNote(r){
+  if(!r.payDay) return `<div class="paynote none">받는 날 안 정함 — 줄을 눌러 정해 주세요</div>`;
+  const dt = payDateFor(r.payType, r.payDay, SMY, SMM);
+  const d = parseYmd(dt);
+  return `<div class="paynote">${SMM+1}월분 → <b>${d.getMonth()+1}월 ${d.getDate()}일</b>에 받음${r.payType==='pre'?' · 선불':''}${r.payMix?`<span class="mixwarn">현장마다 지급일이 다릅니다</span>`:''}</div>`;
+}
+
+/* ---------- 돈 들어오는 달 화면 ----------
+   그 달 통장에 찍히는 돈만 날짜순으로 모읍니다.
+   선불인 곳은 '그 달분', 후불인 곳은 '지난달분'이 그 달에 들어옵니다. */
+function payViewHTML(){
+  const y = SMY, m = SMM, today = todayYmd(), mk = monKey(y, m);
+  const pm = (m === 0) ? { y:y-1, m:11 } : { y, m:m-1 };
+
+  const cur = regularRows(y, m), prv = regularRows(pm.y, pm.m);
+  const src = [];
+  cur.forEach(r=>{ if(r.payDay && r.payType === 'pre')  src.push({ r, wy:y,    wm:m    }); });
+  prv.forEach(r=>{ if(r.payDay && r.payType === 'post') src.push({ r, wy:pm.y, wm:pm.m }); });
+
+  const list = src.map(x=>{
+    const date = payDateFor(x.r.payType, x.r.payDay, x.wy, x.wm);
+    const wk = monKey(x.wy, x.wm), sto = settleStoreOf(wk);
+    return { ...x, date, wk, paid: !!sto.paid[x.r.name], paidD: sto.paidD[x.r.name] || '', total: x.r.total };
+  }).filter(x=> x.date && x.date.slice(0,7) === mk)
+    .sort((a,b)=> a.date.localeCompare(b.date) || b.total - a.total);
+
+  const onc = onceRows(y, m), stCur = settleStoreOf(mk);
+  const oncTot  = onc.reduce((a,b)=>a+parseAmt(b.o.amount), 0);
+  const oncPaid = onc.filter(r=>stCur.opaid[r.key]).reduce((a,b)=>a+parseAmt(b.o.amount), 0);
+  const inTot  = list.reduce((a,b)=>a+b.total, 0) + oncTot;
+  const gotTot = list.filter(x=>x.paid).reduce((a,b)=>a+b.total, 0) + oncPaid;
+
+  let h = `<div class="hint" style="padding:0 10px 8px"><b>${m+1}월에 통장으로 들어올 돈</b>입니다.
+      줄마다 <b>몇 월분</b>인지 적혀 있습니다. 줄을 누르면 현장을 고칠 수 있습니다.</div>`;
+  h += `<div class="pysum">
+      <div class="in"><div class="t">${m+1}월 들어올 돈</div><div class="v">${wonCard(inTot)}</div></div>
+      <div class="got"><div class="t">받았음</div><div class="v">${wonCard(gotTot)}</div></div>
+      <div class="yet"><div class="t">아직</div><div class="v">${wonCard(inTot-gotTot)}</div></div>
+    </div>`;
+
+  /* 받는 날을 아직 안 정한 곳 */
+  const noDay = [];
+  cur.forEach(r=>{ if(r.payDay) return; if(r.kids) r.kids.forEach(k=>noDay.push(k.name)); else noDay.push(r.name); });
+  if(noDay.length){
+    h += `<div class="nodaybox"><div class="lt">받는 날을 아직 안 정한 곳 ${noDay.length}곳</div>` +
+      noDay.map(n=>`<div class="li" data-act="stsite" data-name="${esc(n)}">${esc(n)} — 눌러서 정하기</div>`).join('') +
+      `<div class="hint" style="margin-top:7px">현장 수정 화면 아래쪽 <b>정산금 받는 날</b>에 며칠인지 적으면 이 목록에 날짜순으로 뜹니다.</div></div>`;
+  }
+
+  h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 받는 날짜순</span></div>`;
+  h += list.length ? list.map(x=>{
+    const d = parseYmd(x.date);
+    const isLate = !x.paid && x.date < today;
+    const gap = isLate ? dayGap(today, x.date) : 0;
+    const kids = x.r.kids;
+    return `<div class="strow py ${isLate?'late':''} ${x.paid?'done':''}"${kids?'':` data-act="stsite" data-name="${esc(x.r.name)}"`}>
+        <div class="top">
+          <div class="n"><span class="pydate">${d.getMonth()+1}/${d.getDate()}(${DOW_KR[d.getDay()]})</span>${kids?esc(x.r.name):`<span class="kidname">${esc(x.r.name)}</span>`}</div>
+          <div class="a">${won(x.total)}원</div>
+        </div>
+        <div class="s"><span class="mtag ${x.r.payType==='pre'?'pre':''}">${x.wm+1}월분${x.r.payType==='pre'?' · 선불':''}</span>${
+          kids ? `현장 ${kids.length}곳 묶음 · ${x.wm+1}월 ${x.r.cnt}회 방문`
+               : (x.r.billing==='per' ? `회당 ${won(x.r.amount)}원 × ${x.r.cnt}회` : `월 정액 · ${x.wm+1}월 ${x.r.cnt}회 방문`)
+        }${x.r.payMix?`<span class="mixwarn">현장마다 지급일이 다릅니다</span>`:''}${isLate?`<span class="latetag">늦음 ${gap}일</span>`:''}</div>
+        ${kids ? `<div class="kids">${kids.map(k=>`<div class="kid"><span class="kidname" data-act="stsite" data-name="${esc(k.name)}">${esc(k.name)}</span><b>${won(k.total)}원</b></div>`).join('')}</div>` : ''}
+        <div class="cks">
+          <button class="ck paid ${x.paid?'on':''}" data-act="ck" data-kind="paid" data-scope="site" data-mk="${x.wk}" data-k="${esc(x.r.name)}">입금 받음${x.paid&&x.paidD?' '+mdy(x.paidD):''}</button>
+        </div>
+      </div>`;
+  }).join('') : `<div class="empty">${m+1}월에 들어올 정기청소 정산금이 없습니다</div>`;
+
+  if(onc.length){
+    h += `<div class="stsec">일회성 <span style="color:#94a3b8">· ${m+1}월에 한 건</span></div>`;
+    h += onc.map(r=>`<div class="strow py ${stCur.opaid[r.key]?'done':''}">
+        <div class="top"><div class="n"><span class="pydate">${mdy(r.date)}</span>${esc(onceLabel(r.o))}</div><div class="a">${won(r.o.amount)}원</div></div>
+        <div class="s"><span class="mtag">${m+1}월분</span>${esc(labelDate(r.date))}</div>
+        <div class="cks">
+          <button class="ck paid ${stCur.opaid[r.key]?'on':''}" data-act="ck" data-kind="paid" data-scope="once" data-mk="${mk}" data-k="${esc(r.key)}">입금 받음${stCur.opaid[r.key]&&stCur.opaidD[r.key]?' '+mdy(stCur.opaidD[r.key]):''}</button>
+        </div>
+      </div>`).join('');
+  }
+
+  h += `<div class="stsum">
+      <div class="paid">받았음<b>${won(gotTot)}원</b></div>
+      <div class="due">아직 안 들어옴<b>${won(inTot-gotTot)}원</b></div>
+    </div>`;
+  h += `<div class="stgrand"><span>${m+1}월에 들어올 돈</span><span>${won(inTot)}원</span></div>`;
+  h += `<div class="hint" style="padding:10px 10px 20px">여기서 <b>입금 받음</b>을 누르면 그 줄에 적힌 <b>월분</b>으로 기록됩니다.
+      8월 25일에 받은 7월분을 눌러도 <b>7월</b> 자리에 들어가니, 일한 달 화면의 숫자와 어긋나지 않습니다.<br><br>
+      받는 날은 현장마다 <b>현장 수정 → 정산금 받는 날</b>에서 정합니다.
+      북가좌처럼 그 달 것을 그 달에 미리 받는 곳은 <b>선불</b>로 두세요.</div>`;
+  return h;
 }
 
 /* 정산 내용을 글로 복사 — 현장 목록까지 전부 들어감 */
@@ -2234,13 +2423,15 @@ function onAct(e){
   if(act==='ck'){
     e.stopPropagation();
     const scope = el.dataset.scope, kind = el.dataset.kind, k = el.dataset.k;
-    const box = ckBox(scope, kind), dbox = ckDateBox(scope, kind);
+    const mk = el.dataset.mk || settleKey();          /* 어느 달 것으로 기록할지 */
+    const box = ckBox(scope, kind, mk), dbox = ckDateBox(scope, kind, mk);
     if(box[k]){                       /* 이미 표시된 것 — 날짜를 바꾸거나 지웁니다 */
-      ckMenu(scope, kind, k);
+      ckMenu(scope, kind, k, mk);
     }else{                            /* 처음 누르면 오늘 날짜로 바로 표시 */
       box[k] = true; dbox[k] = todayYmd();
       save(true); renderSettle();
-      toast((kind==='inv'?'계산서 발행':'입금 받음')+' — 오늘 날짜로 표시했습니다');
+      const wl = (mk !== settleKey()) ? ` (${+mk.slice(5,7)}월분)` : '';
+      toast((kind==='inv'?'계산서 발행':'입금 받음')+' — 오늘 날짜로 표시했습니다'+wl);
     }
     return;
   }
@@ -2288,6 +2479,7 @@ function onAct(e){
     setTimeout(renderSettle, 40);
     return;
   }
+  if(act==='stview'){ D.ui.settleView = el.dataset.v; save(true); renderSettle(); calwrap.scrollTop = 0; return; }
   if(act==='sortamt'){ SORT_HOURLY = false; renderSettle(); return; }
   if(act==='sorthr'){  SORT_HOURLY = true;  renderSettle(); return; }
   if(act==='skipdays'){
@@ -2499,7 +2691,7 @@ function editSite(id, presetDate){
           weekday: pd?pd.getDay():1, dates: pd?[presetDate]:[] },
     color: nextColorIdx(null), mins: 0,
     startDate:'', address:'', manager:'', bizno:'', email:'', client:'', entry:'', parking:'', work:'', note:'',
-    amount:0, billing:'monthly', invoice:false, invDay:0, paused:false, skips:[]
+    amount:0, billing:'monthly', invoice:false, invDay:0, payType:'post', payDay:0, paused:false, skips:[]
   };
   form.rep = Object.assign({ type:'weekly', days:[], anchor: todayYmd(), day:1, nth:1, weekday:1, dates:[] }, form.rep||{});
   if(!Array.isArray(form.rep.dates)) form.rep.dates = [];
@@ -2588,6 +2780,17 @@ function editSite(id, presetDate){
     <div class="field" style="margin-top:12px"><label>계산서 발행 예정일 (매월 며칠)</label>
       <input type="number" id="fInvDay" min="1" max="31" inputmode="numeric" placeholder="예) 5 — 비워두면 표시 안 함">
       <div class="hint">여기에 날짜를 적어 두면 정산금액 탭에 <b>매달</b> "계산서 5일 발행 예정"으로 뜹니다. 잊지 않고 발행하시라고 미리 알려 주는 표시입니다.</div></div>
+
+    <div class="field" style="margin-top:16px"><label>정산금 받는 방식</label>
+      <div class="seg" id="fPayType">
+        <button data-v="post">후불 (다음 달에 받음)</button>
+        <button data-v="pre">선불 (그 달에 미리 받음)</button>
+      </div>
+      <div class="hint" id="payHint"></div></div>
+    <div class="field"><label>정산금 받는 날 (매월 며칠)</label>
+      <input type="number" id="fPayDay" min="1" max="31" inputmode="numeric" placeholder="예) 25 — 비워두면 안 정한 것">
+      <div class="hint">여기까지 채우면 정산금액 탭의 <b>돈 들어오는 달</b> 화면에 날짜순으로 뜨고,
+        입금이 <b>몇 월분</b>인지 자동으로 적힙니다.</div></div>
     <div class="swrow"><div><b>일시 중지</b><div class="hint">달력에 표시하지 않습니다</div></div><div class="sw" id="fPaused"></div></div>
     ${form.skips.length?`<div class="hint" style="margin-top:10px">건너뛴 날짜 ${form.skips.length}개 <button style="color:#0ea5e9;font-weight:800" onclick="clearSkips()">모두 되돌리기</button></div>`:''}
 
@@ -2676,6 +2879,27 @@ function bindForm(){
       form.invDay = n;
     });
   }
+
+  /* 정산금 받는 날 */
+  const payHint = ()=>{
+    const el = $('#payHint'); if(!el) return;
+    const d = payDayOf(form);
+    if(!d){ el.innerHTML = '날짜를 비워두면 <b>돈 들어오는 달</b> 화면에 안 뜹니다.'; return; }
+    el.innerHTML = (payTypeOf(form)==='pre')
+      ? `<b>8월</b>에 일한 것을 <b>8월 ${d}일</b>에 미리 받는 곳입니다. (예: 북가좌)`
+      : `<b>7월</b>에 일한 것을 <b>8월 ${d}일</b>에 받는 곳입니다.`;
+  };
+  if(!form.payType) form.payType = 'post';
+  segPick('#fPayType', payTypeOf(form), v=>{ form.payType = v; payHint(); });
+  const pv = $('#fPayDay');
+  if(pv){
+    pv.value = payDayOf(form) ? payDayOf(form) : '';
+    pv.addEventListener('input', e=>{
+      form.payDay = Math.max(0, Math.min(31, parseInt(e.target.value,10) || 0));
+      payHint();
+    });
+  }
+  payHint();
 
   if(!Number.isInteger(form.color)) form.color = nextColorIdx(form.id);
   const cw = $('#fColor');
@@ -3283,7 +3507,14 @@ function toggleColorBy(el){
   toast(bySite() ? '현장별 색으로 표시합니다' : '시간대 색으로 표시합니다');
 }
 
-window.addEventListener('resize', ()=>{ const b = WKH; fitWeeks(); if(WKH !== b) renderCal(); });
+window.addEventListener('resize', relayout);
+window.addEventListener('orientationchange', ()=>{ relayout(); setTimeout(relayout, 400); });
+if(window.visualViewport){
+  visualViewport.addEventListener('resize', relayout);
+  visualViewport.addEventListener('scroll', relayout);
+}
+/* 페이지가 조금이라도 밀려 있으면 곧바로 되돌립니다 */
+window.addEventListener('scroll', ()=>{ if(window.scrollY || window.scrollX) window.scrollTo(0,0); }, { passive:true });
 window.addEventListener('beforeunload', ()=>save(true));
 
 /* 브라우저가 "아까 보던 스크롤 자리"로 되돌려 놓는 것을 막습니다 — 이것 때문에 엉뚱한 날짜가 보였습니다 */
@@ -3303,14 +3534,17 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){ awayAt = Date.now(); save(true); return; }
   const away = awayAt ? Date.now() - awayAt : 0;
   awayAt = 0;
+  relayout(); setTimeout(relayout, 300);   /* 자다 깨면 화면 크기를 다시 재서 잘림을 바로잡습니다 */
   if(away > 30*60*1000 || todayYmd() !== bootDay) backToToday();
   /* 홈 화면 앱은 다시 열어도 새로 안 불러옵니다 — 깨어날 때마다 새 버전이 있는지 확인합니다 */
   if(away > 60*1000) setTimeout(checkUpdate, 400);
 });
 window.addEventListener('pageshow', e=>{                 /* 자던 화면을 깨워서 열 때 */
+  relayout(); setTimeout(relayout, 300);
   if(e.persisted) backToToday();
 });
 
+setVH();                 /* 화면 높이를 먼저 재고 시작합니다 */
 migrateColors();
 migrateMemos();
 ensureSince();
@@ -3318,6 +3552,8 @@ freezeMonths();          /* 지난 달 정산을 확정해 둡니다 */
 render();
 settleScroll(todayYmd());
 refreshBackupBadge();
+relayout();                         /* 처음 그린 뒤 한 번 더 맞춥니다 */
+setTimeout(relayout, 500);
 if(SAVE_LOCK) showGuard();          /* 저장이 잠겼으면 곧바로 알립니다 */
 idbRescue();                        /* 두 번째 저장소에 더 남아 있는지 봅니다 */
 setTimeout(checkUpdate, 1200);      /* 새 버전이 올라왔는지 확인합니다 */
