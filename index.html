@@ -79,6 +79,67 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .bn-close{width:30px;height:30px;border-radius:50%;background:#f1f5f9;color:#475569;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .bn-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#f1f5f9;color:#475569}
+.chip.c-end{background:#e2e8f0;color:#64748b}
+.stbar{position:sticky;top:0;z-index:5;background:#0f172a;color:#fff;border-radius:14px;margin:8px 6px 12px;padding:13px 15px;box-shadow:0 6px 18px rgba(15,23,42,.22)}
+.stbar .l{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.stbar .l span{font-size:13px;font-weight:700;color:#cbd5e1}
+.stbar .l b{font-size:23px;font-weight:900;letter-spacing:-.4px}
+.stbar .r{display:flex;gap:14px;margin-top:6px;font-size:12.5px;font-weight:800}
+.stbar .r .p{color:#5eead4}
+.stbar .r .d{color:#fca5a5}
+.cklegend{display:flex;align-items:center;gap:12px;padding:0 12px 8px;font-size:11.5px;color:#94a3b8;font-weight:700}
+.cklegend b{display:inline-block;width:17px;height:17px;line-height:17px;text-align:center;border-radius:6px;font-size:10.5px;margin-right:3px;vertical-align:-3px}
+.cklegend b.c1{background:#fef3c7;color:#b45309}
+.cklegend b.c2{background:#d1fae5;color:#047857}
+.cklegend .tp{margin-left:auto;font-weight:600}
+.srow{background:#fff;border-radius:13px;margin:0 6px 7px;padding:0 6px 0 0;box-shadow:0 1px 3px rgba(15,23,42,.06);
+  display:flex;flex-wrap:wrap;align-items:center}
+.srow.done{opacity:.55}
+.srow.open{box-shadow:0 3px 12px rgba(15,23,42,.12)}
+.srow .rmain{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;padding:11px 4px 11px 14px;cursor:pointer}
+.srow .rn{font-size:15.5px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.25}
+.srow .rsp{display:block;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:-.2px;margin-top:2px}
+.srow .ra{margin-left:auto;font-size:15.5px;font-weight:900;white-space:nowrap}
+.srow .rck{display:flex;gap:5px;padding:0 2px}
+.dot{border:0;border-radius:9px;padding:7px 9px;font-size:12.5px;font-weight:900;background:#f1f5f9;color:#94a3b8;cursor:pointer;line-height:1.1}
+.dot i{display:block;font-style:normal;font-size:9.5px;font-weight:800;margin-top:1px}
+.dot.inv.on{background:#fef3c7;color:#b45309}
+.dot.paid.on{background:#d1fae5;color:#047857}
+.rdet{flex:0 0 100%;border-top:1px solid #f1f5f9;margin-left:14px;padding:11px 10px 13px 0}
+.rdet .span{font-size:13.5px;font-weight:800;color:#0f766e;margin-bottom:5px}
+.rdet .meta{font-size:12.5px;color:#64748b;font-weight:600;line-height:1.6}
+.rdet .kids{margin-top:8px;background:#f8fafc;border-radius:10px;padding:8px 10px}
+.rdet .kids .kid{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.rdet .kids .kid b{font-weight:800}
+.rdet .dates{display:flex;gap:14px;margin-top:9px;font-size:12.5px;color:#64748b;font-weight:700}
+.rdet .dates b{color:#0f172a}
+.rdet .dates i{font-style:normal;color:#cbd5e1}
+.rfix{display:inline-block;margin:10px 8px 0 0;border:1px solid #e2e8f0;background:#fff;border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:800;color:#475569}
+.rfix.undo{border-color:#fecaca;color:#b91c1c}
+.srow .rsp i.need{font-style:normal;color:#b45309;font-weight:800}
+.rdet .hsec{margin-top:14px;font-size:11.5px;font-weight:800;color:#94a3b8}
+.rdet .hrow{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:5px 0;border-bottom:1px solid #f1f5f9}
+.rdet .hrow span{font-weight:700;color:#475569}
+.rdet .hrow b{margin-left:auto;font-weight:800}
+.rdet .hrow i{font-style:normal;color:#94a3b8;font-weight:700;font-size:11.5px;flex:0 0 auto}
+.datesbox{display:flex;flex-wrap:wrap;gap:6px}
+.mitems{margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:8px}
+.mi2{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:5px 0}
+.mi2 .d{flex:0 0 34px;color:#94a3b8;font-weight:800}
+.mi2 .n{font-weight:800;color:#0f172a}
+.mi2 .sp{color:#94a3b8;font-weight:700;font-size:11px}
+.mi2 b{margin-left:auto;font-weight:800;white-space:nowrap}
+.chip.c-endsoon{background:#ccfbf1;color:#0f766e}
+.endname{font-size:19px;font-weight:900;margin:2px 0 12px}
+.endbox{background:#f0fdfa;border:1px solid #99f6e4;color:#0f766e;border-radius:12px;padding:12px 13px;font-size:13.5px;line-height:1.7;margin-bottom:16px}
+.dzone{margin-top:26px;padding-top:16px;border-top:1px dashed #e2e8f0}
+.dzone .dt{font-size:13px;font-weight:800;color:#b91c1c;margin-bottom:5px}
+.dzone .dh{font-size:12.5px;color:#64748b;line-height:1.65;margin-bottom:10px}
+.siteitem.ended{opacity:.6}
+.endfold{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:20px;padding:13px 14px;
+  border:1px dashed #e2e8f0;border-radius:12px;background:#f8fafc;color:#94a3b8;font-size:13.5px;font-weight:800;cursor:pointer}
+.endfold svg{transition:transform .15s}
+.endfold.on svg{transform:rotate(90deg)}
 .chip.c-morning{background:#fef3c7;color:#92400e}
 .chip.c-afternoon{background:#dbeafe;color:#1e40af}
 .chip.c-evening{background:#ede9fe;color:#5b21b6}
@@ -573,11 +634,11 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v20';
+const APP_VER = 'v21';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
-const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, hist: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
+const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, hist: {}, cyc: {}, cycH: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
 
 /* 저장 잠금 — 읽기에 실패했거나 다른 화면이 더 최신일 때 켜집니다.
    잠긴 동안에는 아무것도 쓰지 않습니다. 빈 내용이 멀쩡한 데이터를 덮어쓰던 사고를 막습니다. */
@@ -594,6 +655,8 @@ function fillDefaults(p){
   d.ui = Object.assign({ tab:0, colorBy:'site', lastBackup:'' }, (p&&p.ui)||{});  /* ui는 통째로 덮이지 않게 병합 */
   d.done = d.done || {};
   d.hist = d.hist || {};                       /* 월별 기록(확정된 달) — 옛 백업에는 없습니다 */
+  d.cyc  = d.cyc  || {};                       /* 현장별 지금 정산 구간 — 옛 백업에는 없습니다 */
+  d.cycH = d.cycH || {};                       /* 받은 기록 — 옛 백업에는 없습니다 */
   d.personal = d.personal || {}; d.expense = d.expense || {};
   d.order = d.order || {}; d.memos = d.memos || {};
   d.offdays = d.offdays || {}; d.settle = d.settle || {}; d.once = d.once || {};
@@ -1180,7 +1243,7 @@ function bannerSite(id, dateStr){
   openBanner(`
     <div class="bn-head">
       <div class="bn-title">${bySite()?`<span style="display:inline-block;width:13px;height:13px;border-radius:4px;background:${siteColor(s).c};margin-right:7px;vertical-align:-1px"></span>`:''}${esc(s.name)}</div>
-      <button class="bn-del" onclick="delSite('${s.id}')">삭제</button>
+      <button class="bn-del" onclick="openEndSite('${s.id}')">삭제</button>
       <button class="bn-close" onclick="closeBanner()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="bn-chips">
@@ -1295,19 +1358,20 @@ function fitWeeks(){
 const maxInCell = () => MAXCHIP;
 function render(){ renderTop(); renderCal(); renderPanel(); syncArrows(); }
 function syncArrows(){
-  const show = (TAB===3) ? 'flex' : 'none';
-  const a = $('#btnPrev'), b = $('#btnNext'), h = $('#btnHist');
-  if(a) a.style.display = show;
-  if(b) b.style.display = show;
-  if(h) h.style.display = show;          /* 월별 기록은 정산금액 탭에서만 */
+  /* 정산은 이제 달로 넘기지 않습니다 — 좌우 화살표와 '이번달'은 정산 탭에서 감춥니다 */
+  const a = $('#btnPrev'), b = $('#btnNext'), h = $('#btnHist'), t = $('#btnToday');
+  if(a) a.style.display = 'none';
+  if(b) b.style.display = 'none';
+  if(h) h.style.display = (TAB===3) ? 'flex' : 'none';   /* 월별 기록은 정산금액 탭에서만 */
+  if(t) t.style.display = (TAB===3) ? 'none' : 'flex';
 }
 
 function renderTop(){
   $('#tTitle').textContent = ['정기청소','스케줄','가계부','정산금액'][TAB];
   if(TAB===3){
-    $('#tRange').textContent = `${SMY}년 ${SMM+1}월`;
+    const n = new Date();
+    $('#tRange').textContent = `${n.getMonth()+1}월 ${n.getDate()}일 기준`;
     $('#tRange').classList.add('big');
-    $('#btnToday').textContent = '이번달';
   }else{
     $('#tRange').textContent = `${anchor.getFullYear()}년 ${anchor.getMonth()+1}월`;
     $('#tRange').classList.add('big');
@@ -1914,10 +1978,11 @@ function regularRows(Y, M){
     }
     if(!cnt && !skipN) return;
     const k = (s.name||'').trim() || '(이름 없음)';
-    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim(), payType:'post', payDay:0, payMix:false };
+    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim(), payType:'post', payDay:0, payMix:false, cutDay:0 };
     g.cnt += cnt; g.skip = (g.skip||0) + skipN; g.skipDs = (g.skipDs||[]).concat(skipDs);
     g.ds = (g.ds||[]).concat(okDs);
     if(!g.invDay && +s.invDay) g.invDay = +s.invDay;
+    if(!g.cutDay && cutDayOf(s)) g.cutDay = cutDayOf(s);
     const pd = payDayOf(s), pt = payTypeOf(s);
     if(pd){
       if(!g.payDay){ g.payDay = pd; g.payType = pt; }
@@ -1940,7 +2005,7 @@ function regularRows(Y, M){
     const c = (r.client||'').trim();
     if(!c){ gm.set('@'+r.name, r); return; }
     const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'group', invoice:false, slots:new Set(), payType:'post', payDay:0, payMix:false };
-    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.ds = (g.ds||[]).concat(r.ds||[]); if(!g.invDay && r.invDay) g.invDay = r.invDay; g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
+    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.ds = (g.ds||[]).concat(r.ds||[]); if(!g.invDay && r.invDay) g.invDay = r.invDay; if(!g.cutDay && r.cutDay) g.cutDay = r.cutDay; g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
     if(r.payDay){
       if(!g.payDay){ g.payDay = r.payDay; g.payType = r.payType; }
       else if(g.payDay !== r.payDay || g.payType !== r.payType) g.payMix = true;
@@ -2017,80 +2082,72 @@ function freezeMonths(){
   if(changed) save(true);
 }
 /* 화면에 뿌릴 목록 — 이번 달은 지금 계산, 지난 달은 확정된 기록 */
-function monthList(){
-  const cur = curMonKey();
-  const out = [{ ...monthCalc(+cur.slice(0,4), +cur.slice(5,7) - 1), live:true }];
-  Object.keys(D.hist||{}).filter(k=>k < cur).sort().reverse()
-    .forEach(k=> out.push({ ...D.hist[k], k, live:false }));
-  return out;
+/* ---------- 월별 기록 ----------
+   이제 '그 달에 실제로 통장에 들어온 돈'을 기준으로 모읍니다.
+   현장마다 정산 구간이 달라도, 받은 날짜로 모으면 통장과 그대로 맞습니다. */
+function paidMonths(){
+  const by = new Map();
+  Object.entries(D.cycH || {}).forEach(([name, arr])=>{
+    (arr || []).forEach(x=>{
+      const k = (x.paidD || '').slice(0, 7);
+      if(!k) return;
+      const g = by.get(k) || { k, tot:0, items:[] };
+      g.tot += (x.amount || 0);
+      g.items.push({ name, ...x });
+      by.set(k, g);
+    });
+  });
+  return [...by.values()].map(g=>{
+    g.items.sort((a,b)=> (a.paidD < b.paidD ? -1 : a.paidD > b.paidD ? 1 : b.amount - a.amount));
+    const [y, m] = g.k.split('-').map(Number);
+    const ex = expMonth(y, m - 1);
+    return { ...g, exp: ex.tot, net: g.tot - ex.tot };
+  }).sort((a,b)=> a.k < b.k ? 1 : -1);
 }
+let HOPEN = new Set();
+function toggleHMon(k){ if(HOPEN.has(k)) HOPEN.delete(k); else HOPEN.add(k); openHistory(); }
 function openHistory(){
   closeBanner();
-  const list = monthList();
+  const list = paidMonths();
   const yNow = new Date().getFullYear();
   const ofYear = list.filter(x=>+x.k.slice(0,4) === yNow);
-  const ySum = ofYear.reduce((a,b)=>a+b.grand, 0);
+  const ySum = ofYear.reduce((a,b)=>a+b.tot, 0);
   const yAvg = ofYear.length ? Math.round(ySum / ofYear.length) : 0;
 
-  /* 지난달엔 있었는데 이번 달엔 없는 현장 */
-  const gone = (()=>{
-    if(list.length < 2) return [];
-    const now = new Set((list[0].sites||[]).map(s=>s.n));
-    return (list[1].sites||[]).filter(s=>!now.has(s.n));
-  })();
-
-  let h = `<div class="yrbox"><div class="t">${yNow}년 누적</div>
+  let h = `<div class="yrbox"><div class="t">${yNow}년 받은 돈</div>
       <div class="v">${won(ySum)}원</div>
       <div class="sub">월 평균 ${won(yAvg)}원 · ${ofYear.length}개월</div></div>`;
 
-  if(gone.length){
-    h += `<div class="missbox"><div class="mt">지난달엔 있었는데 이번 달에 없는 현장 ${gone.length}곳</div>` +
-      gone.map(s=>`<div class="mi">${esc(s.n)} — ${monLabel(list[1].k).split('년 ')[1]} ${won(s.t)}원</div>`).join('') +
-      `<div class="mh">계약이 끝났거나 등록을 빠뜨린 것일 수 있습니다.</div></div>`;
-  }
-
-  h += `<div class="stsec">월별 내역 <span style="color:#94a3b8">· 줄을 누르면 그 달로 이동</span></div>`;
-  h += list.map((x, i)=>{
+  h += `<div class="stsec">달마다 받은 돈 <span style="color:#94a3b8">· 줄을 누르면 건별로 보입니다</span></div>`;
+  h += list.length ? list.map((x, i)=>{
     const prev = list[i+1];
-    const dif = prev ? x.grand - prev.grand : 0;
-    const due = Math.max(0, x.grand - x.paid);
-    return `<div class="mrow ${due?'late':''}" onclick="goMonth('${x.k}')">
+    const dif = prev ? x.tot - prev.tot : 0;
+    const op = HOPEN.has(x.k);
+    return `<div class="mrow" onclick="toggleHMon('${x.k}')">
         <div class="top"><div class="m">${monLabel(x.k)}</div>
-          <span class="tag ${x.live?'now':''}">${x.live?'진행 중':'확정'}</span>
+          <span class="tag">${x.items.length}건</span>
           ${prev ? `<div class="dl ${dif>0?'up':(dif<0?'dn':'')}">${dif===0?'변화 없음':(dif>0?'+':'−')+won(Math.abs(dif))+(dif>0?' ▲':' ▼')}</div>` : ''}</div>
-        <div class="amt">${won(x.grand)}원</div>
-        <div class="s">입금 <b class="p">${won(x.paid)}</b> · 미수 <b class="d">${won(due)}</b> · 경비 ${won(x.exp)}</div>
-        <div class="s">경비 빼고 남은 금액 <b>${won(x.grand - x.exp)}원</b>${x.live?'':`
-          <button class="recalc" onclick="event.stopPropagation();recalcMonth('${x.k}')">다시 계산</button>`}</div>
+        <div class="amt">${won(x.tot)}원</div>
+        <div class="s">경비 ${won(x.exp)}원 · 경비 빼고 남은 금액 <b>${won(x.net)}원</b></div>
+        ${op ? `<div class="mitems">${x.items.map(it=>`
+            <div class="mi2"><span class="d">${mdy(it.paidD)}</span><span class="n">${esc(it.name)}</span>
+              <span class="sp">${spanTxt(it)}</span><b>${won(it.amount)}원</b></div>`).join('')}</div>` : ''}
       </div>`;
-  }).join('');
+  }).join('') : `<div class="empty">아직 받은 기록이 없습니다.<br>정산금액 탭에서 <b>입</b>을 누르면 여기에 쌓입니다.</div>`;
 
-  h += `<div class="hint" style="margin-top:10px">지난 달은 <b>확정</b>되어 그때 숫자 그대로 남습니다.
-      현장 금액을 나중에 바꿔도 지난 달 기록은 변하지 않습니다.
-      빠뜨린 내용을 뒤늦게 넣었다면 <b>다시 계산</b>을 눌러 주세요.<br><br>
+  h += `<div class="hint" style="margin-top:12px">정산금액 탭에서 <b>입금 받음(입)</b>을 누른 것이 <b>받은 날짜 기준</b>으로 이 달에 들어옵니다.
+      현장마다 정산 구간이 달라도 통장에 찍힌 달로 모이니 숫자가 어긋나지 않습니다.<br><br>
       이 기록은 백업 파일에도 함께 저장됩니다.</div>`;
 
   openSheet('월별 기록', `<button class="btn sec" style="margin-bottom:12px" onclick="copyHistory()">월별 기록 글로 복사</button>${h}`);
 }
-function goMonth(k){
-  SMY = +k.slice(0,4); SMM = +k.slice(5,7) - 1;
-  closeSheet(); TAB = 3; D.ui.tab = 3; save(); render();
-}
-function recalcMonth(k){
-  const y = +k.slice(0,4), m = +k.slice(5,7) - 1;
-  D.hist[k] = monthCalc(y, m);
-  save(true); openHistory(); toast(monLabel(k) + ' 다시 계산했습니다');
-}
 function copyHistory(){
-  const list = monthList();
-  const L = ['[ 월별 기록 ]', ''];
-  list.forEach((x, i)=>{
-    const prev = list[i+1], dif = prev ? x.grand - prev.grand : 0;
-    const due = Math.max(0, x.grand - x.paid);
-    L.push(`${monLabel(x.k)}${x.live?' (진행 중)':''}`);
-    L.push(`  합계 ${won(x.grand)}원${prev?` (${dif>0?'+':''}${won(dif)})`:''}`);
-    L.push(`  입금 ${won(x.paid)}원 · 미수 ${won(due)}원`);
-    L.push(`  경비 ${won(x.exp)}원 · 남은 금액 ${won(x.grand - x.exp)}원`);
+  const list = paidMonths();
+  const L = ['[ 월별 기록 — 받은 돈 ]', ''];
+  list.forEach(x=>{
+    L.push(`${monLabel(x.k)} — ${won(x.tot)}원 (${x.items.length}건)`);
+    x.items.forEach(it=> L.push(`  ${mdy(it.paidD)} ${it.name} ${spanTxt(it)} ${won(it.amount)}원`));
+    L.push(`  경비 ${won(x.exp)}원 · 남은 금액 ${won(x.net)}원`);
     L.push('');
   });
   copyText(L.join('\n'), '월별 기록을 복사했습니다');
@@ -2112,111 +2169,231 @@ function skipDaysText(list){
     return `<span>${m}월 ${ds.join('·')}일 <b>${ds.length}회</b></span>`;
   }).join('');
 }
+/* ---------- 근무 기간 ----------
+   현장마다 정산을 끊는 날(cutDay)이 있으면 "7월 5일 ~ 8월 5일",
+   안 정했으면 그 달에 실제로 일한 첫날 ~ 마지막날을 보여 줍니다. */
+const cutDayOf = x => Math.max(0, Math.min(31, parseInt(x && x.cutDay, 10) || 0));
+function workSpan(r, y, m){
+  const cd = r.cutDay || 0;
+  if(cd){
+    const p = new Date(y, m - 1, 1);
+    const a = new Date(p.getFullYear(), p.getMonth(), Math.min(cd, daysInMonth(p.getFullYear(), p.getMonth())));
+    const b = new Date(y, m, Math.min(cd, daysInMonth(y, m)));
+    return `${a.getMonth()+1}월 ${a.getDate()}일 ~ ${b.getMonth()+1}월 ${b.getDate()}일 근무`;
+  }
+  const ds = (r.ds||[]).slice().sort();
+  if(!ds.length) return '';
+  const a = parseYmd(ds[0]), b = parseYmd(ds[ds.length-1]);
+  return ds.length === 1
+    ? `${a.getMonth()+1}월 ${a.getDate()}일 하루 근무`
+    : `${a.getMonth()+1}월 ${a.getDate()}일 ~ ${b.getMonth()+1}월 ${b.getDate()}일 근무`;
+}
+
+/* 줄에 짧게 붙이는 근무 구간 — 8/5-9/5 */
+/* =========================================================
+   정산 — 현장별 '회차' 방식
+   달 단위로 끊지 않습니다. 현장마다 자기 정산 구간을 돌고,
+   입금을 받으면 그 회차가 끝나고 다음 구간으로 넘어갑니다.
+   그래서 화면에 현장마다 다른 달이 섞여 있어도 괜찮습니다.
+   ========================================================= */
+function addMonthYmd(s, n){
+  const d = parseYmd(s), y = d.getFullYear(), m = d.getMonth() + n, day = d.getDate();
+  const yy = y + Math.floor(m/12), mm = ((m%12)+12)%12;
+  return ymd(new Date(yy, mm, Math.min(day, daysInMonth(yy, mm))));
+}
+function firstCycle(r){
+  const cd = r.cutDay || 0, n = new Date();
+  const y = n.getFullYear(), m = n.getMonth();
+  if(cd){
+    const to = ymd(new Date(y, m, Math.min(cd, daysInMonth(y, m))));
+    return { from: addMonthYmd(to, -1), to, dates: [], inv:false, invD:'' };
+  }
+  return { from: ymd(new Date(y, m, 1)), to: ymd(new Date(y, m, daysInMonth(y, m))), dates: [], inv:false, invD:'' };
+}
+function nextCycle(c, r){
+  const cd = r.cutDay || 0;
+  if(cd) return { from: c.to, to: addMonthYmd(c.to, 1), dates: [], inv:false, invD:'' };
+  const d = parseYmd(c.to), y = d.getFullYear(), m = d.getMonth();
+  return { from: ymd(new Date(y, m+1, 1)), to: ymd(new Date(y, m+1, daysInMonth(y, m+1))), dates: [], inv:false, invD:'' };
+}
+function cycOf(r){
+  D.cyc = D.cyc || {};
+  if(!D.cyc[r.name]) D.cyc[r.name] = firstCycle(r);
+  const c = D.cyc[r.name];
+  c.dates = c.dates || [];
+  return c;
+}
+function cycHistOf(name){ D.cycH = D.cycH || {}; return D.cycH[name] || []; }
+/* 이 회차 금액 — 회당은 적어 넣은 날짜 수만큼, 정액은 그대로 */
+function cycAmount(r, c){
+  return r.billing === 'per' ? parseAmt(r.amount) * (c.dates||[]).length : r.total0;
+}
+function spanTxt(c){
+  const a = parseYmd(c.from), b = parseYmd(c.to);
+  return `${a.getMonth()+1}/${a.getDate()} - ${b.getMonth()+1}/${b.getDate()}`;
+}
+function datesTxt(c){
+  const ds = (c.dates||[]).slice().sort();
+  if(!ds.length) return '';
+  const by = new Map();
+  ds.forEach(d=>{ const [y,m,dd] = d.split('-').map(Number); const k=`${m}`; (by.get(k)||by.set(k,[]).get(k)).push(dd); });
+  return [...by.entries()].map(([m,dd])=>`${m}월 ${dd.join('·')}일`).join('  ');
+}
+
+/* ---------- 회당 현장 — 일한 날짜 적어 넣기 ---------- */
+let DAYSEL = null;
+function openCycDates(name){
+  DAYSEL = name;
+  const r = settleRows().find(x=>x.name===name); if(!r) return;
+  const c = cycOf(r), ds = (c.dates||[]).slice().sort();
+  openSheet('일한 날짜 적기', `
+    <div class="endname">${esc(name)}</div>
+    <div class="endbox">회당 <b>${won(parseAmt(r.amount))}원</b> 현장입니다.
+      날짜를 넣은 만큼 금액이 계산됩니다.<br>지금 <b>${ds.length}회 · ${won(parseAmt(r.amount)*ds.length)}원</b></div>
+    <div class="field"><label>날짜 추가</label>
+      <input type="date" id="cdPick" value="${todayYmd()}">
+      <button class="btn sec" style="width:100%;margin-top:8px" onclick="addCycDate()">이 날짜 넣기</button></div>
+    <div class="field"><label>넣은 날짜</label>
+      <div class="datesbox">${ds.length ? ds.map(d=>{ const p=parseYmd(d);
+        return `<span class="datechip">${p.getMonth()+1}월 ${p.getDate()}일 <b onclick="delCycDate('${d}')">✕</b></span>`; }).join('')
+        : '<div class="hint">아직 없습니다. 위에서 날짜를 넣어 주세요.</div>'}</div></div>
+  `);
+}
+function addCycDate(){
+  const v = ($('#cdPick')||{}).value; if(!v){ toast('날짜를 골라 주세요'); return; }
+  const r = settleRows().find(x=>x.name===DAYSEL); if(!r) return;
+  const c = cycOf(r);
+  if(c.dates.includes(v)){ toast('이미 넣은 날짜입니다'); return; }
+  c.dates.push(v); c.dates.sort(); save(true); openCycDates(DAYSEL); renderSettle();
+}
+function delCycDate(d){
+  const r = settleRows().find(x=>x.name===DAYSEL); if(!r) return;
+  const c = cycOf(r);
+  c.dates = c.dates.filter(x=>x!==d); save(true); openCycDates(DAYSEL); renderSettle();
+}
+
+/* ---------- 정산 구간 고치기 ---------- */
+let SPANSEL = null;
+function openCycSpan(name){
+  SPANSEL = name;
+  const r = settleRows().find(x=>x.name===name); if(!r) return;
+  const c = cycOf(r);
+  openSheet('정산 구간 고치기', `
+    <div class="endname">${esc(name)}</div>
+    <div class="endbox">지금 받을 차례인 <b>정산 구간</b>입니다.
+      처음 쓰기 시작할 때 실제와 맞춰 두면 그 뒤로는 자동으로 넘어갑니다.</div>
+    <div class="field"><label>시작</label><input type="date" id="spFrom" value="${esc(c.from)}"></div>
+    <div class="field"><label>끝</label><input type="date" id="spTo" value="${esc(c.to)}"></div>
+    <div class="bn-actions" style="margin-top:18px">
+      <button class="btn pri" onclick="saveCycSpan()">저장</button>
+    </div>`);
+}
+function saveCycSpan(){
+  const a = ($('#spFrom')||{}).value, b = ($('#spTo')||{}).value;
+  if(!a || !b){ toast('날짜를 모두 골라 주세요'); return; }
+  if(a > b){ toast('끝나는 날이 시작보다 빠릅니다'); return; }
+  const r = settleRows().find(x=>x.name===SPANSEL); if(!r) return;
+  const c = cycOf(r); c.from = a; c.to = b;
+  save(true); closeSheet(); renderSettle(); toast('구간을 바꿨습니다');
+}
+
+/* ---------- 계산서 / 입금 ---------- */
+function cycInv(name){
+  const r = settleRows().find(x=>x.name===name); if(!r) return;
+  const c = cycOf(r);
+  if(c.inv){ c.inv = false; c.invD = ''; toast('계산서 표시를 지웠습니다'); }
+  else { c.inv = true; c.invD = todayYmd(); toast('계산서 발행 — 오늘 날짜로 표시했습니다'); }
+  save(true); renderSettle();
+}
+function cycPaid(name){
+  const r = settleRows().find(x=>x.name===name); if(!r) return;
+  const c = cycOf(r), amt = cycAmount(r, c);
+  if(r.billing==='per' && !(c.dates||[]).length){ toast('일한 날짜를 먼저 넣어 주세요'); openCycDates(name); return; }
+  D.cycH = D.cycH || {}; D.cycH[name] = D.cycH[name] || [];
+  D.cycH[name].unshift({ from:c.from, to:c.to, amount:amt, dates:(c.dates||[]).slice(),
+                         inv:!!c.inv, invD:c.invD||'', paidD: todayYmd() });
+  if(D.cycH[name].length > 24) D.cycH[name].length = 24;
+  D.cyc[name] = nextCycle(c, r);
+  save(true); renderSettle();
+  const nx = D.cyc[name];
+  toast(`${spanTxt(c)} 받음 — 다음 ${spanTxt(nx)}로 넘어갑니다`);
+}
+function undoPaid(name){
+  const h = cycHistOf(name); if(!h.length) return;
+  const last = h.shift();
+  D.cyc[name] = { from:last.from, to:last.to, dates:last.dates||[], inv:last.inv, invD:last.invD };
+  save(true); renderSettle(); toast('입금 표시를 되돌렸습니다');
+}
+
+/* ---------- 화면 ---------- */
+function settleRows(){
+  const y = new Date().getFullYear(), m = new Date().getMonth();
+  return regularRows(y, m).map(r=>({ ...r, total0: r.total }));
+}
+let OPENROW = new Set();
 function renderSettle(){
   panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
   calwrap.classList.remove('compact'); calwrap.classList.add('list');
-  const VIEW = (D.ui.settleView === 'pay') ? 'pay' : 'work';
-  const viewSw = `<div class="stview">
-      <button class="${VIEW==='work'?'on':''}" data-act="stview" data-v="work">일한 달</button>
-      <button class="${VIEW==='pay'?'on':''}" data-act="stview" data-v="pay">돈 들어오는 달</button>
+
+  const rows = settleRows().map(r=>{ const c = cycOf(r); return { r, c, amt: cycAmount(r, c) }; });
+  const due = rows.reduce((a,x)=>a + x.amt, 0);
+  const tk = curMonKey();
+  let gotM = 0, gotN = 0;
+  rows.forEach(x=> cycHistOf(x.r.name).forEach(h=>{ if((h.paidD||'').slice(0,7) === tk){ gotM += h.amount; gotN++; } }));
+
+  let h = `<div class="stbar">
+      <div class="l"><span>아직 못 받은 돈</span><b>${won(due)}원</b></div>
+      <div class="r"><span class="p">이번 달 받음 ${won(gotM)}원 · ${gotN}건</span></div>
     </div>`;
-  if(VIEW === 'pay'){
-    const keep0 = calwrap.scrollTop;
-    calwrap.innerHTML = viewSw + payViewHTML();
-    if(keep0 > 0) calwrap.scrollTop = keep0;
-    return;
-  }
 
-  const st = settleStore();
-  const reg = regularRows(), onc = onceRows();
+  rows.sort((a,b)=> (a.c.to < b.c.to ? -1 : a.c.to > b.c.to ? 1 : b.amt - a.amt));
 
-  const regTotal = reg.reduce((a,b)=>a+b.total, 0);
-  const oncTotal = onc.reduce((a,b)=>a+parseAmt(b.o.amount), 0);
-  const regPaid  = reg.filter(r=>st.paid[r.name]).reduce((a,b)=>a+b.total, 0);
-  const oncPaid  = onc.filter(r=>st.opaid[r.key]).reduce((a,b)=>a+parseAmt(b.o.amount), 0);
-  const paid = regPaid + oncPaid, grand = regTotal + oncTotal;
+  h += `<div class="cklegend"><span><b class="c1">계</b> 계산서</span><span><b class="c2">입</b> 입금 받음</span><span class="tp">줄을 누르면 자세히</span></div>`;
 
-  const mdy = v => { const d = parseYmd(v); return d ? `${d.getMonth()+1}/${d.getDate()}` : ''; };
-  const ckHtml = (scope,k,inv,paidOn,invDay)=>{
-    const dI = (scope==='site' ? st.invD : st.oinvD)[k] || '';
-    const dP = (scope==='site' ? st.paidD : st.opaidD)[k] || '';
-    const invTxt = inv ? `계산서 발행${dI?' '+mdy(dI):''}`
-                       : (invDay ? `계산서 ${invDay}일 발행 예정` : '계산서 발행');
-    return `<div class="cks">
-      <button class="ck inv ${inv?'on':(invDay?'plan':'')}"  data-act="ck" data-kind="inv"  data-scope="${scope}" data-k="${esc(k)}">${invTxt}</button>
-      <button class="ck paid ${paidOn?'on':''}" data-act="ck" data-kind="paid" data-scope="${scope}" data-k="${esc(k)}">입금 받음${paidOn&&dP?' '+mdy(dP):''}</button>
-    </div>`;
-  };
-
-  const late = reg.map(r=>({ r, od: overdueOf(r.name) })).filter(x=>x.od.months>0);
-
-  let h = viewSw;
-  if(late.length){
-    h += `<div class="latebox"><div class="lt">입금이 밀린 곳 ${late.length}곳</div>` +
-      late.sort((a,b)=>b.od.amount-a.od.amount).map(x=>
-        `<div class="li">${esc(x.r.name)} — ${x.od.labels.join('·')} 미입금 · ${won(x.od.amount)}원</div>`).join('') +
-      `<div class="hint" style="margin-top:7px">지난달들 중 <b>입금 받음</b>이 안 눌린 달을 모은 것입니다. 화살표로 그 달에 가서 표시해 주세요.</div></div>`;
-  }
-  h += `<div class="hint" style="padding:0 10px 8px"><b>현장 줄을 한 번 누르면</b> 세부사항을 고칠 수 있습니다. 고치면 정기청소 달력에도 함께 반영됩니다.</div>`;
-  h += `<div class="stsec">정기청소 <span style="color:#94a3b8">· 거래처로 묶임</span>
-      <span class="sortsw"><button class="${SORT_HOURLY?'':'on'}" data-act="sortamt">금액순</button><button class="${SORT_HOURLY?'on':''}" data-act="sorthr">시간당순</button></span></div>`;
-  h += reg.length ? reg.map(r=>{
-    const od = overdueOf(r.name);
-    return `
-      <div class="strow ${od.months?'late':''}"${r.kids?'':` data-act="stsite" data-name="${esc(r.name)}"`}>
-        <div class="top"><div class="n">${r.kids?esc(r.name):`<span class="kidname">${esc(r.name)}</span>`}${od.months?`<span class="latetag">${od.months}달 밀림</span>`:''}</div><div class="a">${won(r.total)}원${r.hourly?`<div class="hr">시간당 ${won(r.hourly)}원</div>`:''}</div></div>
-        <div class="s">${r.kids
-            ? `현장 ${r.kids.length}곳 묶음 · 이번 달 ${r.cnt}회 방문`
-            : (r.billing==='per'
-              ? `회당 ${won(r.amount)}원 × ${r.cnt}회`
-              : `월 정액 · 이번 달 ${r.cnt}회 방문`) + (r.amount?'':' · 금액 미입력')}${wdChip(r)}${r.skip?`<button class="skiptag" data-act="skipdays" data-k="${esc(r.name)}">건너뜀 ${r.skip}회 ▾</button>`:''}</div>
-        ${payNote(r)}
-        ${wdDates(r)}
-        ${r.skip && openSkips.has(r.name) ? `<div class="skipdays">${skipDaysText(r.skipDs)}</div>` : ''}
-        ${r.kids ? `<div class="kids">${r.kids.map(k=>`<div class="kid"><span><span class="kidname" data-act="stsite" data-name="${esc(k.name)}">${esc(k.name)}</span>${k.skip?` <button class="skiptag" data-act="skipdays" data-k="${esc(k.name)}">건너뜀 ${k.skip}회 ▾</button>`:''}</span><b>${won(k.total)}원</b></div>${k.skip && openSkips.has(k.name) ? `<div class="skipdays">${skipDaysText(k.skipDs)}</div>` : ''}`).join('')}</div>` : ''}
-        ${ckHtml('site', r.name, !!st.inv[r.name], !!st.paid[r.name], r.invDay)}
+  h += rows.map(({r,c,amt})=>{
+    const op = OPENROW.has(r.name);
+    const per = r.billing === 'per';
+    const sub = per
+      ? (datesTxt(c) ? `${datesTxt(c)} · ${c.dates.length}회` : '<i class="need">일한 날짜를 넣어 주세요</i>')
+      : spanTxt(c);
+    const hist = cycHistOf(r.name);
+    const det = !op ? '' : `<div class="rdet">
+        <div class="span">${spanTxt(c)} 정산분${per?` · 회당 ${won(parseAmt(r.amount))}원 × ${c.dates.length}회`:''}</div>
+        <div class="meta">${r.kids?`현장 ${r.kids.length}곳 묶음`:(per?'회당 정산':'월 정액')}${r.cutDay?` · 매월 ${r.cutDay}일에 끊음`:''}</div>
+        ${r.kids?`<div class="kids">${r.kids.map(x=>`<div class="kid"><span>${esc(x.name)}</span><b>${won(x.total)}원</b></div>`).join('')}</div>`:''}
+        ${per?`<button class="rfix" onclick="openCycDates('${esc(r.name)}')">일한 날짜 넣기 · 고치기</button>`:''}
+        <button class="rfix" onclick="openCycSpan('${esc(r.name)}')">정산 구간 고치기</button>
+        ${r.kids?'':`<button class="rfix" data-act="stsite" data-name="${esc(r.name)}">현장 수정</button>`}
+        ${hist.length?`<div class="hsec">지난 정산</div>${hist.slice(0,3).map(x=>`
+          <div class="hrow"><span>${spanTxt(x)}</span><b>${won(x.amount)}원</b><i>${mdy(x.paidD)} 받음</i></div>`).join('')}
+          <button class="rfix undo" onclick="undoPaid('${esc(r.name)}')">방금 받은 것 되돌리기</button>`:''}
       </div>`;
-    }).join('')
-    : `<div class="empty">이 달에 잡힌 정기청소가 없습니다</div>`;
-  h += `<div class="sttot"><span>정기 합계</span><span>${won(regTotal)}원</span></div>`;
+    return `<div class="srow ${op?'open':''}">
+        <div class="rmain" data-act="strow" data-k="${esc(r.name)}">
+          <div class="rn">${esc(r.name)}<span class="rsp">${sub}</span></div>
+          <div class="ra">${won(amt)}원</div>
+        </div>
+        <div class="rck">
+          <button class="dot inv ${c.inv?'on':''}" onclick="cycInv('${esc(r.name)}')">계${c.inv&&c.invD?`<i>${mdy(c.invD)}</i>`:''}</button>
+          <button class="dot paid" onclick="cycPaid('${esc(r.name)}')">입</button>
+        </div>
+        ${det}
+      </div>`;
+  }).join('');
 
-  h += `<div class="stsec">일회성 <span style="color:#94a3b8">· 건별 합산</span></div>`;
-  h += onc.length ? onc.map(r=>`
-      <div class="strow">
-        <div class="top"><div class="n">${esc(onceLabel(r.o))}</div><div class="a">${won(r.o.amount)}원</div></div>
-        <div class="s">${esc(labelDate(r.date))}${(r.o.note||'').trim()?' · '+esc(r.o.note.split('\n')[0].trim().slice(0,20)):''}</div>
-        ${ckHtml('once', r.key, !!st.oinv[r.key], !!st.opaid[r.key], 0)}
-      </div>`).join('')
-    : `<div class="empty">이 달 일회성 내역이 없습니다</div>`;
-  h += `<div class="sttot"><span>일회성 합계</span><span>${won(oncTotal)}원</span></div>`;
-
-  const ex = expMonth(SMY, SMM);
-  const pv = expMonth(SMM===0?SMY-1:SMY, SMM===0?11:SMM-1);
-  const dif = ex.tot - pv.tot;
-  h += `<div class="stsec">경비 <span style="color:#94a3b8">· 가계부</span></div>`;
+  const ex = expMonth(new Date().getFullYear(), new Date().getMonth());
+  h += `<div class="stsec">이번 달 경비 <span style="color:#94a3b8">· 가계부</span></div>`;
   h += `<div class="strow">
       ${EXP_CATS.map(c=>`<div class="exrow"><span><i style="background:${c.c}"></i>${c.n}</span><b>${won(ex.sum[c.k]||0)}원</b></div>`).join('')}
       <div class="exrow tot"><span>경비 합계</span><b>${won(ex.tot)}원</b></div>
-      <div class="exdiff ${dif>0?'up':(dif<0?'down':'')}">지난달 ${won(pv.tot)}원 · ${dif===0?'변화 없음':(dif>0?`${won(dif)}원 늘었습니다`:`${won(-dif)}원 줄었습니다`)}</div>
-      <button class="btn sec" style="margin-top:10px" onclick="copyExpense('${SMY}-${pad(SMM+1)}-01')">가계부 내용 복사하기</button>
     </div>`;
-  h += `<div class="stsum">
-      <div class="paid">입금 완료<b>${won(paid)}원</b></div>
-      <div class="due">미수금<b>${won(grand - paid)}원</b></div>
-    </div>`;
-  h += `<div class="stgrand"><span>${SMM+1}월 전체 합계</span><span>${won(grand)}원</span></div>`;
-  h += `<div class="stgrand exp"><span>경비 합계</span><span>− ${won(ex.tot)}원</span></div>`;
-  h += `<div class="stgrand net"><span>경비 빼고 남은 금액</span><span>${won(grand - ex.tot)}원</span></div>`;
-  h += `<button class="btn sec" style="margin:0 6px 12px;width:calc(100% - 12px)" onclick="copySettle()">정산 내용 복사하기</button>`;
-  h += `<div class="hint" style="padding:0 10px 20px">정기청소는 주5일이든 격주든 <b>현장 이름당 금액이 한 번만</b> 더해집니다.
-        회수로 받는 곳은 현장 수정에서 정산 방식을 <b>회당</b>으로 바꾸면 그 달 실제 횟수만큼 곱해집니다.</div>`;
+  h += `<div class="hint" style="padding:10px 12px 22px">현장마다 자기 정산 구간을 돕니다. <b>입금 받음(입)</b>을 누르면 그 회차가 끝나고
+      <b>다음 구간으로 자동으로 넘어갑니다.</b> 그래서 현장마다 달이 섞여 있어도 됩니다.</div>`;
 
-  const keepTop = calwrap.scrollTop;          /* 현장을 고치고 돌아와도 보던 자리 그대로 */
+  const keepTop = calwrap.scrollTop;
   calwrap.innerHTML = h;
   if(keepTop > 0) calwrap.scrollTop = keepTop;
 }
-
-/* 일한 달 화면에서 각 줄 아래에 '언제 받는지' 한 줄 */
 function payNote(r){
   if(!r.payDay) return `<div class="paynote none">받는 날 안 정함 — 줄을 눌러 정해 주세요</div>`;
   const dt = payDateFor(r.payType, r.payDay, SMY, SMM);
@@ -2371,45 +2548,41 @@ function copyExpense(dateStr){
   copyText(L.join('\n'), '가계부 내용을 복사했습니다');
 }
 function copySettle(){
-  const st = settleStore();
-  const reg = regularRows(), onc = onceRows();
-  const regTotal = reg.reduce((a,b)=>a+b.total,0);
-  const oncTotal = onc.reduce((a,b)=>a+parseAmt(b.o.amount),0);
-  const regPaid  = reg.filter(r=>st.paid[r.name]).reduce((a,b)=>a+b.total,0);
-  const oncPaid  = onc.filter(r=>st.opaid[r.date]).reduce((a,b)=>a+parseAmt(b.o.amount),0);
-  const grand = regTotal + oncTotal, paid = regPaid + oncPaid;
-  const mark = (inv,pd)=>{ const m=[]; if(inv) m.push('계산서'); if(pd) m.push('입금완료'); return m.length?` [${m.join('·')}]`:''; };
+  const rows = settleRows().map(r=>{ const c = cycOf(r); return { r, c, amt: cycAmount(r, c) }; })
+    .sort((a,b)=> a.c.to < b.c.to ? -1 : a.c.to > b.c.to ? 1 : b.amt - a.amt);
+  const due = rows.reduce((a,x)=>a+x.amt, 0);
+  const tk = curMonKey();
+  const got = [];
+  Object.entries(D.cycH||{}).forEach(([name, arr])=>(arr||[]).forEach(x=>{
+    if((x.paidD||'').slice(0,7) === tk) got.push({ name, ...x });
+  }));
+  got.sort((a,b)=> a.paidD < b.paidD ? -1 : 1);
+  const gotSum = got.reduce((a,b)=>a+b.amount, 0);
+  const n = new Date();
 
   const L = [];
-  L.push(`${SMY}년 ${SMM+1}월 정산`);
+  L.push(`${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 기준 정산`);
   L.push('');
-  L.push('■ 정기청소');
-  if(reg.length) reg.forEach(r=>{
-    const detail = r.kids ? ` (현장 ${r.kids.length}곳)` : (r.billing==='per' ? ` (회당 ${won(r.amount)} × ${r.cnt}회)` : '');
-    L.push(`- ${r.name}${detail} : ${won(r.total)}원${mark(st.inv[r.name], st.paid[r.name])}`);
-    if(r.kids) r.kids.forEach(k=>L.push(`   · ${k.name} : ${won(k.total)}원${k.skip?` (건너뜀 ${k.skip}회)`:''}`));
-    else if(r.skip) L.push(`   · 건너뜀 ${r.skip}회 — ${skipDaysPlain(r.skipDs)}`);
+  L.push('■ 아직 못 받은 것');
+  if(rows.length) rows.forEach(({r,c,amt})=>{
+    const per = r.billing === 'per';
+    const dt = per ? ` (${datesTxt(c) || '날짜 없음'} · ${(c.dates||[]).length}회)` : '';
+    L.push(`- ${r.name} ${spanTxt(c)}${dt} : ${won(amt)}원${c.inv?` [계산서 ${mdy(c.invD)}]`:''}`);
+    if(r.kids) r.kids.forEach(k=>L.push(`   · ${k.name} : ${won(k.total)}원`));
   });
-  else L.push('- 내역 없음');
-  L.push(`정기 합계 : ${won(regTotal)}원`);
+  else L.push('- 없음');
+  L.push(`못 받은 돈 합계 : ${won(due)}원`);
   L.push('');
-  L.push('■ 일회성');
-  if(onc.length) onc.forEach(r=>{
-    const d = parseYmd(r.date);
-    L.push(`- ${d.getMonth()+1}/${d.getDate()} ${onceLabel(r.o)} : ${won(r.o.amount)}원${mark(st.oinv[r.key], st.opaid[r.key])}`);
-  });
-  else L.push('- 내역 없음');
-  L.push(`일회성 합계 : ${won(oncTotal)}원`);
-  const exq = expMonth(SMY, SMM);
+  L.push(`■ ${n.getMonth()+1}월에 받은 것`);
+  if(got.length) got.forEach(x=> L.push(`- ${mdy(x.paidD)} ${x.name} ${spanTxt(x)} : ${won(x.amount)}원`));
+  else L.push('- 없음');
+  L.push(`받은 돈 합계 : ${won(gotSum)}원`);
+  const exq = expMonth(n.getFullYear(), n.getMonth());
   L.push('');
-  L.push('■ 경비 (가계부)');
+  L.push('■ 이번 달 경비 (가계부)');
   EXP_CATS.forEach(c=>L.push(`- ${c.n} : ${won(exq.sum[c.k]||0)}원`));
   L.push(`경비 합계 : ${won(exq.tot)}원`);
-  L.push('');
-  L.push(`전체 합계 : ${won(grand)}원`);
-  L.push(`입금 완료 : ${won(paid)}원`);
-  L.push(`미수금 : ${won(grand-paid)}원`);
-  L.push(`경비 빼고 남은 금액 : ${won(grand - exq.tot)}원`);
+  L.push(`받은 돈에서 경비 뺀 금액 : ${won(gotSum - exq.tot)}원`);
 
   copyText(L.join('\n'), '정산 내용을 복사했습니다');
 }
@@ -2479,7 +2652,13 @@ function onAct(e){
     setTimeout(renderSettle, 40);
     return;
   }
-  if(act==='stview'){ D.ui.settleView = el.dataset.v; save(true); renderSettle(); calwrap.scrollTop = 0; return; }
+  if(act==='strow'){                         /* 정산 탭 — 줄을 눌러 펼치기/접기 */
+    e.stopPropagation();
+    if(tMoved) return;                       /* 스크롤하다 스친 것은 무시 */
+    const k = el.dataset.k;
+    if(OPENROW.has(k)) OPENROW.delete(k); else OPENROW.add(k);
+    renderSettle(); return;
+  }
   if(act==='sortamt'){ SORT_HOURLY = false; renderSettle(); return; }
   if(act==='sorthr'){  SORT_HOURLY = true;  renderSettle(); return; }
   if(act==='skipdays'){
@@ -2643,7 +2822,7 @@ function openSheet(title, html, after, acts){
     if(acts.del){                                  /* 새로 등록할 땐 지울 게 없으므로 숨김 */
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'shbtn del'; b.textContent = '삭제';
-      b.onclick = ()=>delSite(acts.del);
+      b.onclick = ()=>openEndSite(acts.del);
       $('#sheetClose').before(b);
     }
     const s = document.createElement('button');
@@ -2661,22 +2840,39 @@ $('#sheetBd').addEventListener('click', closeSheet);
 $('#sheetClose').addEventListener('click', closeSheet);
 
 /* ---------- 현장 관리 ---------- */
+let ENDOPEN = false;                 /* 끝난 현장 칸을 펼쳤는지 — 앱을 열면 항상 접혀 있습니다 */
+function toggleEnded(){ ENDOPEN = !ENDOPEN; openSiteList(); }
 function openSiteList(){
   closeBanner();
-  const rows = D.sites.slice()
-    .sort((a,b)=> (SLOT_ORDER[a.slot]-SLOT_ORDER[b.slot]) || a.name.localeCompare(b.name,'ko'))
-    .map(s=>`
-      <div class="siteitem" onclick="editSite('${s.id}')">
+  const item = s=>{
+    const ed = s.endDate ? parseYmd(s.endDate) : null;
+    const tag = isEnded(s) ? ` <span class="chip c-end">종료</span>`
+      : endingSoon(s) ? ` <span class="chip c-endsoon">${ed.getMonth()+1}/${ed.getDate()}까지</span>` : '';
+    return `
+      <div class="siteitem${isEnded(s)?' ended':''}" onclick="editSite('${s.id}')">
         <div class="bar" style="background:${barHex(s)}"></div>
         <div class="m">
-          <div class="n">${esc(s.name)}${s.paused?' <span class="chip">중지</span>':''}</div>
-          <div class="d">${slotName(s.slot)} · ${esc(repText(s))} · ${s.amount?won(s.amount)+'원':'금액 없음'}${s.billing==='per'?'/회':''}</div>
+          <div class="n">${esc(s.name)}${s.paused?' <span class="chip">중지</span>':''}${tag}</div>
+          <div class="d">${isEnded(s)?`${ed.getFullYear()}년 ${ed.getMonth()+1}월 ${ed.getDate()}일에 끝남 · `:''}${slotName(s.slot)} · ${esc(repText(s))} · ${s.amount?won(s.amount)+'원':'금액 없음'}${s.billing==='per'?'/회':''}</div>
         </div>
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`).join('');
+      </div>`;
+  };
+  const sorted = D.sites.slice()
+    .sort((a,b)=> (SLOT_ORDER[a.slot]-SLOT_ORDER[b.slot]) || a.name.localeCompare(b.name,'ko'));
+  const live = sorted.filter(s=>!isEnded(s)), done = sorted.filter(isEnded);
+  const rows = live.map(item).join('');
+  const doneRows = done.length ? `
+    <div class="endfold${ENDOPEN?' on':''}" onclick="toggleEnded()">
+      <span>끝난 현장 ${done.length}곳</span>
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    ${ENDOPEN ? `<div class="hint" style="margin:2px 0 8px">달력에는 안 나오지만 지난 기록과 정산은 그대로 있습니다. 날짜를 잘못 넣었으면 눌러서 고치세요.</div>
+      ${done.map(item).join('')}` : ''}` : '';
   openSheet('현장 관리', `
     <button class="btn pri" style="margin-bottom:12px" onclick="editSite()">＋ 새 현장 등록</button>
-    ${rows || '<div class="empty">등록된 현장이 없습니다.<br>새 현장을 등록해 주세요.</div>'}
+    ${rows || '<div class="empty">하고 있는 현장이 없습니다.<br>새 현장을 등록해 주세요.</div>'}
+    ${doneRows}
   `);
 }
 
@@ -2698,6 +2894,7 @@ function editSite(id, presetDate){
   form.skips = form.skips || [];
   form.amount = parseAmt(form.amount);
   form.billing = form.billing || 'monthly';
+  form.endDate = form.endDate || '';
 
   openSheet(s?'현장 수정':'새 현장 등록', `
     <div class="field"><label>현장명 *</label><input type="text" id="fName" placeholder="예) OO빌딩 2층"></div>
@@ -2742,6 +2939,10 @@ function editSite(id, presetDate){
     </div>
 
     <div class="field"><label>시작일 (비워두면 제한 없음)</label><input type="date" id="fStart"></div>
+    <div class="field"><label>끝나는 날 (계약 종료일 — 비워두면 계속)</label><input type="date" id="fEnd">
+      <div class="hint">이 날까지만 청소하고 끝냅니다. <b>다음 날부터 달력에 안 나오고, 지난 기록과 정산은 그대로 남습니다.</b>
+        현장을 지우지 말고 이 날짜를 넣어 주세요.</div>
+      <div class="hint" id="endHint"></div></div>
 
     <div class="field"><label>거래처 (같은 이름끼리 정산에서 묶임)</label>
       <input type="text" id="fClient" list="clientList" placeholder="예) OO관리단 — 비워두면 이 현장만 따로 정산">
@@ -2781,21 +2982,16 @@ function editSite(id, presetDate){
       <input type="number" id="fInvDay" min="1" max="31" inputmode="numeric" placeholder="예) 5 — 비워두면 표시 안 함">
       <div class="hint">여기에 날짜를 적어 두면 정산금액 탭에 <b>매달</b> "계산서 5일 발행 예정"으로 뜹니다. 잊지 않고 발행하시라고 미리 알려 주는 표시입니다.</div></div>
 
-    <div class="field" style="margin-top:16px"><label>정산금 받는 방식</label>
-      <div class="seg" id="fPayType">
-        <button data-v="post">후불 (다음 달에 받음)</button>
-        <button data-v="pre">선불 (그 달에 미리 받음)</button>
-      </div>
-      <div class="hint" id="payHint"></div></div>
-    <div class="field"><label>정산금 받는 날 (매월 며칠)</label>
-      <input type="number" id="fPayDay" min="1" max="31" inputmode="numeric" placeholder="예) 25 — 비워두면 안 정한 것">
-      <div class="hint">여기까지 채우면 정산금액 탭의 <b>돈 들어오는 달</b> 화면에 날짜순으로 뜨고,
-        입금이 <b>몇 월분</b>인지 자동으로 적힙니다.</div></div>
+    <div class="field" style="margin-top:16px"><label>정산 끊는 날 (매월 며칠에 끊을지)</label>
+      <input type="number" id="fCutDay" min="1" max="31" inputmode="numeric" placeholder="예) 5 — 비워두면 그 달 1일~말일">
+      <div class="hint">여기에 <b>5</b>를 넣으면 정산 구간이 <b>8/5 - 9/5</b>처럼 매월 5일에 끊깁니다.
+        비워두면 <b>그 달 1일~말일</b>이 한 구간입니다. 정산금액 탭에서 구간을 직접 고칠 수도 있습니다.</div></div>
+
     <div class="swrow"><div><b>일시 중지</b><div class="hint">달력에 표시하지 않습니다</div></div><div class="sw" id="fPaused"></div></div>
     ${form.skips.length?`<div class="hint" style="margin-top:10px">건너뛴 날짜 ${form.skips.length}개 <button style="color:#0ea5e9;font-weight:800" onclick="clearSkips()">모두 되돌리기</button></div>`:''}
 
     <div class="bn-actions" style="margin-top:18px">
-      ${s?`<button class="btn dan" onclick="delSite('${s.id}')">삭제</button>`:''}
+      ${s?`<button class="btn dan" onclick="openEndSite('${s.id}')">끝내기 · 삭제</button>`:''}
       <button class="btn pri" onclick="saveSite()">저장</button>
     </div>
   `, bindForm, { del: s ? s.id : null });
@@ -2816,7 +3012,8 @@ function bindForm(){
   $('#fMin').addEventListener('input', readMins);
   set('#fEntry',form.entry); set('#fParking',form.parking); set('#fWork',form.work);
   set('#fBizno',form.bizno); set('#fEmail',form.email); set('#fClient',form.client);
-  set('#fStart',form.startDate);
+  set('#fStart',form.startDate); set('#fEnd',form.endDate);
+  set('#fCutDay', form.cutDay || '');
   set('#fAnchor',form.rep.anchor); set('#fMday',form.rep.day);
   $('#fAmount').value = form.amount ? won(form.amount) : '';
 
@@ -2837,6 +3034,9 @@ function bindForm(){
     billHint(); hourHint();
   });
   $('#fStart').addEventListener('change', e=>{ form.startDate = e.target.value; });
+  $('#fEnd').addEventListener('change', e=>{ form.endDate = e.target.value; endHint(); });
+  $('#fCutDay').addEventListener('input', e=>{ form.cutDay = Math.max(0, Math.min(31, +e.target.value||0)); });
+  endHint();
   $('#fAnchor').addEventListener('change', e=>{ form.rep.anchor = e.target.value; });
   $('#fMday').addEventListener('input', e=>{ form.rep.day = Math.max(1, Math.min(31, +e.target.value||1)); });
 
@@ -2880,26 +3080,6 @@ function bindForm(){
     });
   }
 
-  /* 정산금 받는 날 */
-  const payHint = ()=>{
-    const el = $('#payHint'); if(!el) return;
-    const d = payDayOf(form);
-    if(!d){ el.innerHTML = '날짜를 비워두면 <b>돈 들어오는 달</b> 화면에 안 뜹니다.'; return; }
-    el.innerHTML = (payTypeOf(form)==='pre')
-      ? `<b>8월</b>에 일한 것을 <b>8월 ${d}일</b>에 미리 받는 곳입니다. (예: 북가좌)`
-      : `<b>7월</b>에 일한 것을 <b>8월 ${d}일</b>에 받는 곳입니다.`;
-  };
-  if(!form.payType) form.payType = 'post';
-  segPick('#fPayType', payTypeOf(form), v=>{ form.payType = v; payHint(); });
-  const pv = $('#fPayDay');
-  if(pv){
-    pv.value = payDayOf(form) ? payDayOf(form) : '';
-    pv.addEventListener('input', e=>{
-      form.payDay = Math.max(0, Math.min(31, parseInt(e.target.value,10) || 0));
-      payHint();
-    });
-  }
-  payHint();
 
   if(!Number.isInteger(form.color)) form.color = nextColorIdx(form.id);
   const cw = $('#fColor');
@@ -2938,6 +3118,15 @@ function billHint(){
   e.innerHTML = form.billing==='per'
     ? `그 달에 실제로 잡힌 횟수만큼 곱해집니다. 예) ${won(form.amount||50000)}원 × 3회 = <b>${won((form.amount||50000)*3)}원</b>`
     : `그 달에 일정이 있으면 <b>${won(form.amount||0)}원</b>이 한 번만 더해집니다. 주5일이어도 똑같습니다.`;
+}
+function endHint(){
+  const e = $('#endHint'); if(!e) return;
+  if(!form.endDate){ e.innerHTML = ''; e.style.display='none'; return; }
+  e.style.display = 'block';
+  const d = parseYmd(form.endDate), t = todayYmd();
+  e.innerHTML = form.endDate < t
+    ? `<b style="color:#0f766e">${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일에 끝난 현장입니다.</b> 달력에는 안 나오고, 그 전 기록과 정산은 그대로 있습니다.`
+    : `<b style="color:#0f766e">${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일까지만 청소합니다.</b> 그 다음 날부터 달력에서 사라집니다.`;
 }
 function repVis(){
   const t = form.rep.type;
@@ -2982,8 +3171,71 @@ function saveSite(){
   panelOpen = false;                 /* 아래 상세 패널까지 닫고 달력으로 */
   render(); toast('저장했습니다');
 }
+/* ---------- 현장 끝내기 / 삭제 ----------
+   계약이 끝난 현장은 지우지 않고 '끝나는 날'을 넣습니다.
+   그래야 지난 달 달력·정산·월별 기록이 그대로 남습니다. */
+function endOfThisMonth(){
+  const n = new Date();
+  return ymd(new Date(n.getFullYear(), n.getMonth(), daysInMonth(n.getFullYear(), n.getMonth())));
+}
+function isEnded(s){ return !!(s && s.endDate && s.endDate < todayYmd()); }
+function endingSoon(s){ return !!(s && s.endDate && s.endDate >= todayYmd()); }
+
+function openEndSite(id){
+  const s = D.sites.find(x=>x.id===id); if(!s) return;
+  closeBanner();
+  const eom = endOfThisMonth(), ed = parseYmd(eom);
+  openSheet('이 현장을 어떻게 할까요?', `
+    <div class="endname">${esc(s.name)}</div>
+    <div class="endbox">
+      <b>계약이 끝난 것이라면 '끝내기'를 쓰세요.</b><br>
+      끝낸 날 <b>다음 날부터</b> 달력에 안 나오고,
+      <b>지난 달 달력·정산·월별 기록은 그대로 남습니다.</b>
+    </div>
+
+    <button class="btn pri" style="width:100%;padding:15px;flex-direction:column;gap:3px;line-height:1.35" onclick="endSite('${s.id}','${eom}')">
+      <span>이번 달까지만 하고 끝내기</span>
+      <span style="font-weight:700;font-size:12.5px;opacity:.85">${ed.getMonth()+1}월 ${ed.getDate()}일까지 청소합니다</span>
+    </button>
+
+    <div class="field" style="margin-top:16px"><label>날짜를 직접 고르기</label>
+      <input type="date" id="fEndPick" value="${esc(s.endDate||eom)}">
+      <button class="btn sec" style="width:100%;margin-top:8px" onclick="endSitePick('${s.id}')">이 날짜까지만 하고 끝내기</button>
+    </div>
+
+    ${s.endDate?`<button class="btn sec" style="width:100%;margin-top:8px" onclick="unendSite('${s.id}')">끝내기 취소 — 계속 하는 것으로</button>`:''}
+
+    <div class="dzone">
+      <div class="dt">완전히 지우기</div>
+      <div class="dh">현장 자체가 없어집니다. <b>지난 달 달력과 정산 기록까지 같이 사라집니다.</b>
+        잘못 등록한 현장일 때만 쓰세요.</div>
+      <button class="btn dan" style="width:100%" onclick="delSite('${s.id}')">완전히 지우기</button>
+    </div>
+  `);
+}
+function setEnd(id, date, msg){
+  const i = D.sites.findIndex(x=>x.id===id); if(i<0) return;
+  D.sites[i] = Object.assign({}, D.sites[i], { endDate: date });   /* D.sites를 건드리는 곳 */
+  save(true); closeSheet(); closeBanner();
+  panelOpen = false;
+  render(); toast(msg);
+}
+function endSite(id, date){
+  const d = parseYmd(date);
+  setEnd(id, date, `${d.getMonth()+1}월 ${d.getDate()}일까지로 정리했습니다`);
+}
+function endSitePick(id){
+  const v = $('#fEndPick') ? $('#fEndPick').value : '';
+  if(!v){ toast('날짜를 골라 주세요'); return; }
+  endSite(id, v);
+}
+function unendSite(id){ setEnd(id, '', '계속 하는 것으로 바꿨습니다'); }
+
 function delSite(id){
-  if(!confirm('이 현장을 삭제할까요? 달력에서 모두 사라집니다.')) return;
+  const s = D.sites.find(x=>x.id===id);
+  const nm = s ? s.name : '이 현장';
+  if(!confirm(`'${nm}'을(를) 완전히 지울까요?\n\n지난 달 달력과 정산 기록까지 모두 사라집니다.\n계약이 끝난 것뿐이라면 [끝내기]를 쓰세요.`)) return;
+  if(!confirm('정말 지웁니다. 되돌릴 수 없습니다.\n\n계속할까요?')) return;
   D.sites = D.sites.filter(x=>x.id!==id);
   save(true); closeSheet(); closeBanner();
   panelOpen = false;
@@ -3220,29 +3472,29 @@ const rangeName = () => ({ month:'이번달', year:'올해', all:'전체' })[EXP
 
 /* ① 현장 목록 — 앱을 그만 써도 이건 남아 있어야 합니다 */
 function csvSites(){
-  const rows = [['현장명','거래처','시간대','반복','정산방식','금액','1회 소요(분)','주소','담당자','출입','주차','작업내용','사업자등록번호','메일','계산서','중지','시작일']];
+  const rows = [['현장명','거래처','시간대','반복','정산방식','금액','1회 소요(분)','주소','담당자','출입','주차','작업내용','사업자등록번호','메일','계산서','중지','시작일','끝나는 날']];
   D.sites.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).forEach(s=>{
     rows.push([s.name||'', s.client||'', slotName(s.slot), repText(s), billText(s),
       parseAmt(s.amount)||'', s.mins||'', s.address||'', s.manager||'', s.entry||'', s.parking||'',
-      s.work||'', s.bizno||'', s.email||'', s.invoice?'발행':'', s.paused?'중지':'', s.startDate||'']);
+      s.work||'', s.bizno||'', s.email||'', s.invoice?'발행':'', s.paused?'중지':'', s.startDate||'', s.endDate||'']);
   });
   return csvOf(rows);
 }
 /* ② 정산 내역 */
 function csvSettle(){
-  const rows = [['월','현장명','거래처','구분','금액','방문횟수','건너뜀','합계','계산서','입금']];
-  monthRange().forEach(({y,m})=>{
-    const key = monKey(y,m), st = D.settle[key] || {};
-    const put = (r, client)=> rows.push([key, r.name, client||'', r.billing==='per'?'회당':'월정액',
-      r.amount||'', r.cnt||0, r.skip||0, r.total||0,
-      (st.inv||{})[client||r.name]?'O':'', (st.paid||{})[client||r.name]?'O':'']);
-    regularRows(y, m).forEach(r=>{
-      if(r.kids) r.kids.forEach(k=>put(k, r.name));
-      else put(r, '');
-    });
-    onceRows(y, m).forEach(r=>rows.push([key, onceLabel(r.o), '', '일회성',
-      parseAmt(r.o.amount)||'', 1, 0, parseAmt(r.o.amount)||0,
-      (st.oinv||{})[r.key]?'O':'', (st.opaid||{})[r.key]?'O':'']));
+  const rows = [['받은날','현장·거래처','정산구간','금액','회당날짜','계산서발행일']];
+  const all = [];
+  Object.entries(D.cycH || {}).forEach(([name, arr])=>(arr||[]).forEach(x=> all.push({ name, ...x })));
+  all.sort((a,b)=> (a.paidD < b.paidD ? 1 : a.paidD > b.paidD ? -1 : 0));
+  all.forEach(x=> rows.push([x.paidD||'', x.name, spanTxt(x), x.amount||0,
+    (x.dates||[]).join(' '), x.invD||'']));
+
+  rows.push([]);
+  rows.push(['— 아직 못 받은 것 —']);
+  rows.push(['현장·거래처','정산구간','금액','회당날짜','계산서발행일']);
+  settleRows().forEach(r=>{
+    const c = cycOf(r);
+    rows.push([r.name, spanTxt(c), cycAmount(r, c), (c.dates||[]).join(' '), c.invD||'']);
   });
   return csvOf(rows);
 }
