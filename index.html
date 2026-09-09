@@ -122,6 +122,8 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .rdet .hrow span{font-weight:700;color:#475569}
 .rdet .hrow b{margin-left:auto;font-weight:800}
 .rdet .hrow i{font-style:normal;color:#94a3b8;font-weight:700;font-size:11.5px;flex:0 0 auto}
+.rdet .hrow{cursor:pointer}
+.rdet .hnone{font-size:12.5px;color:#cbd5e1;font-weight:700;padding:5px 0}
 .datesbox{display:flex;flex-wrap:wrap;gap:6px}
 .mitems{margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:8px}
 .mi2{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:5px 0}
@@ -634,7 +636,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v21';
+const APP_VER = 'v22';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2297,6 +2299,63 @@ function saveCycSpan(){
   save(true); closeSheet(); renderSettle(); toast('구간을 바꿨습니다');
 }
 
+/* ---------- 지난 정산 직접 넣기 / 고치기 ----------
+   앱을 쓰기 전에 이미 받은 것, 또는 날짜를 잘못 눌렀을 때 씁니다.
+   여기 넣은 것은 '받은 날짜' 기준으로 월별 기록에 들어갑니다. */
+let PAYSEL = null;
+function lastMonthRange(){
+  const n = new Date(), y = n.getFullYear(), m = n.getMonth() - 1;
+  const a = new Date(y, m, 1), b = new Date(a.getFullYear(), a.getMonth(), daysInMonth(a.getFullYear(), a.getMonth()));
+  return { from: ymd(a), to: ymd(b) };
+}
+function openPastPay(name, idx){
+  const r = settleRows().find(x=>x.name===name); if(!r) return;
+  const h = cycHistOf(name);
+  const ed = (idx !== undefined && idx !== null) ? h[idx] : null;
+  PAYSEL = { name, idx: (ed ? idx : null) };
+  const lm = lastMonthRange();
+  const v = ed || { from: lm.from, to: lm.to, amount: r.total0 || parseAmt(r.amount), paidD: todayYmd(), invD:'' };
+  openSheet(ed ? '받은 기록 고치기' : '지난 정산 직접 넣기', `
+    <div class="endname">${esc(name)}</div>
+    <div class="endbox">${ed ? '이미 넣어 둔 기록입니다. 날짜나 금액을 고칠 수 있습니다.'
+      : '<b>이미 받은 지난 정산</b>을 여기에 적어 두면 월별 기록에 들어갑니다.<br>지금 받을 차례인 구간은 건드리지 않습니다.'}</div>
+    <div class="field"><label>정산 구간 — 시작</label><input type="date" id="ppFrom" value="${esc(v.from)}"></div>
+    <div class="field"><label>정산 구간 — 끝</label><input type="date" id="ppTo" value="${esc(v.to)}"></div>
+    <div class="field"><label>받은 금액</label><input type="text" id="ppAmt" inputmode="numeric" value="${won(v.amount)}"></div>
+    <div class="field"><label>받은 날짜 (통장에 찍힌 날)</label><input type="date" id="ppPaid" value="${esc(v.paidD)}">
+      <div class="hint">이 날짜가 들어간 <b>달</b>의 월별 기록에 쌓입니다.</div></div>
+    <div class="bn-actions" style="margin-top:18px">
+      ${ed ? `<button class="btn dan" onclick="delPastPay()">이 기록 지우기</button>` : ''}
+      <button class="btn pri" onclick="savePastPay()">저장</button>
+    </div>`, ()=>{
+      const a = $('#ppAmt');
+      if(a) a.addEventListener('input', e=>{ const n = parseAmt(e.target.value); e.target.value = n ? won(n) : ''; });
+    });
+}
+function savePastPay(){
+  if(!PAYSEL) return;
+  const g = id => ($('#'+id) || {}).value || '';
+  const from = g('ppFrom'), to = g('ppTo'), paidD = g('ppPaid'), amount = parseAmt(g('ppAmt'));
+  if(!from || !to){ toast('정산 구간을 골라 주세요'); return; }
+  if(from > to){ toast('끝나는 날이 시작보다 빠릅니다'); return; }
+  if(!paidD){ toast('받은 날짜를 골라 주세요'); return; }
+  if(!amount){ toast('받은 금액을 적어 주세요'); return; }
+  const name = PAYSEL.name;
+  D.cycH = D.cycH || {}; D.cycH[name] = D.cycH[name] || [];
+  const rec = { from, to, amount, dates: [], inv:false, invD:'', paidD };
+  if(PAYSEL.idx === null) D.cycH[name].unshift(rec);
+  else D.cycH[name][PAYSEL.idx] = Object.assign({}, D.cycH[name][PAYSEL.idx], rec);
+  D.cycH[name].sort((a,b)=> a.paidD < b.paidD ? 1 : -1);
+  if(D.cycH[name].length > 36) D.cycH[name].length = 36;
+  PAYSEL = null; save(true); closeSheet(); renderSettle(); toast('받은 기록을 저장했습니다');
+}
+function delPastPay(){
+  if(!PAYSEL || PAYSEL.idx === null) return;
+  if(!confirm('이 받은 기록을 지울까요?')) return;
+  D.cycH[PAYSEL.name].splice(PAYSEL.idx, 1);
+  PAYSEL = null; save(true); closeSheet(); renderSettle(); toast('지웠습니다');
+}
+
 /* ---------- 계산서 / 입금 ---------- */
 function cycInv(name){
   const r = settleRows().find(x=>x.name===name); if(!r) return;
@@ -2364,9 +2423,12 @@ function renderSettle(){
         ${per?`<button class="rfix" onclick="openCycDates('${esc(r.name)}')">일한 날짜 넣기 · 고치기</button>`:''}
         <button class="rfix" onclick="openCycSpan('${esc(r.name)}')">정산 구간 고치기</button>
         ${r.kids?'':`<button class="rfix" data-act="stsite" data-name="${esc(r.name)}">현장 수정</button>`}
-        ${hist.length?`<div class="hsec">지난 정산</div>${hist.slice(0,3).map(x=>`
-          <div class="hrow"><span>${spanTxt(x)}</span><b>${won(x.amount)}원</b><i>${mdy(x.paidD)} 받음</i></div>`).join('')}
-          <button class="rfix undo" onclick="undoPaid('${esc(r.name)}')">방금 받은 것 되돌리기</button>`:''}
+        <div class="hsec">받은 기록 ${hist.length?`${hist.length}건`:''}</div>
+        ${hist.length ? hist.slice(0,6).map((x,i)=>`
+          <div class="hrow" onclick="openPastPay('${esc(r.name)}', ${i})"><span>${spanTxt(x)}</span><b>${won(x.amount)}원</b><i>${mdy(x.paidD)} 받음</i></div>`).join('')
+          : `<div class="hnone">아직 없습니다</div>`}
+        <button class="rfix" onclick="openPastPay('${esc(r.name)}')">＋ 지난 정산 직접 넣기</button>
+        ${hist.length?`<button class="rfix undo" onclick="undoPaid('${esc(r.name)}')">방금 받은 것 되돌리기</button>`:''}
       </div>`;
     return `<div class="srow ${op?'open':''}">
         <div class="rmain" data-act="strow" data-k="${esc(r.name)}">
