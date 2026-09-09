@@ -101,6 +101,12 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .srow .rsp{display:block;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:-.2px;margin-top:2px}
 .srow .ra{margin-left:auto;font-size:15.5px;font-weight:900;white-space:nowrap}
 .srow .rck{display:flex;gap:5px;padding:0 2px}
+.srow.workrow{background:#fbfcfe}
+.srow.workrow .rn,.srow.workrow .ra{color:#64748b}
+.rn b.pre{display:inline-block;margin-left:5px;padding:1px 5px;border-radius:6px;background:#eef2ff;color:#4338ca;font-size:10.5px;font-weight:900;vertical-align:2px}
+.rsp + .invnote,.invnote{display:block;margin-top:3px;font-size:11px;font-weight:800;color:#b45309}
+.stbar .r{display:flex;gap:12px;flex-wrap:wrap}
+.stbar .r .g{color:#94a3b8;font-weight:800}
 .srow.okrow{background:#f0fdf9;border:1px solid #a7f3d0;box-shadow:none}
 .srow.okrow .ra{color:#059669}
 .srow.okrow .rn{color:#065f46}
@@ -671,7 +677,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v28';
+const APP_VER = 'v29';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2017,10 +2023,11 @@ function regularRows(Y, M){
     }
     if(!cnt && !skipN) return;
     const k = (s.name||'').trim() || '(이름 없음)';
-    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim(), payType:'post', payDay:0, payMix:false, cutDay:0 };
+    const g = map.get(k) || { name:k, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, prepay:false, mins:0, amount:0, billing:'monthly', invoice:false, slots:new Set(), client:(s.client||'').trim(), payType:'post', payDay:0, payMix:false, cutDay:0 };
     g.cnt += cnt; g.skip = (g.skip||0) + skipN; g.skipDs = (g.skipDs||[]).concat(skipDs);
     g.ds = (g.ds||[]).concat(okDs);
     if(!g.invDay && +s.invDay) g.invDay = +s.invDay;
+    if(s.prepay) g.prepay = true;
     if(!g.cutDay && cutDayOf(s)) g.cutDay = cutDayOf(s);
     const pd = payDayOf(s), pt = payTypeOf(s);
     if(pd){
@@ -2043,8 +2050,8 @@ function regularRows(Y, M){
   rows.forEach(r=>{
     const c = (r.client||'').trim();
     if(!c){ gm.set('@'+r.name, r); return; }
-    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, mins:0, amount:0, billing:'group', invoice:false, slots:new Set(), payType:'post', payDay:0, payMix:false };
-    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.ds = (g.ds||[]).concat(r.ds||[]); if(!g.invDay && r.invDay) g.invDay = r.invDay; if(!g.cutDay && r.cutDay) g.cutDay = r.cutDay; g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
+    const g = gm.get('#'+c) || { name:c, client:c, kids:[], total:0, cnt:0, skip:0, skipDs:[], ds:[], invDay:0, prepay:false, mins:0, amount:0, billing:'group', invoice:false, slots:new Set(), payType:'post', payDay:0, payMix:false };
+    g.kids.push(r); g.total += r.total; g.cnt += r.cnt; g.skip += (r.skip||0); g.skipDs = g.skipDs.concat(r.skipDs||[]); g.ds = (g.ds||[]).concat(r.ds||[]); if(!g.invDay && r.invDay) g.invDay = r.invDay; if(r.prepay) g.prepay = true; if(!g.cutDay && r.cutDay) g.cutDay = r.cutDay; g.mins += (r.mins||0); if(r.invoice) g.invoice = true;
     if(r.payDay){
       if(!g.payDay){ g.payDay = r.payDay; g.payType = r.payType; }
       else if(g.payDay !== r.payDay || g.payType !== r.payType) g.payMix = true;
@@ -2524,25 +2531,26 @@ function renderSettle(){
 
   /* 방금 [받음]을 누른 곳은 그 자리에 도장만 붙은 채 남습니다 */
   const justPaid = x => PAIDNOW.has(x.r.name);
-  const dueRows = rows.filter(x=> cycDone(x.r, x.c));
-  const ingRows = rows.filter(x=> !cycDone(x.r, x.c));
+  /* 받았냐 안 받았냐로만 나눕니다 — 안 받은 건 전부 위로 */
+  const isOk = x => !!(cycHistOf(x.r.name)[0] && !cycDone(x.r, x.c));
+  const dueRows = rows.filter(x=> !isOk(x));
+  const ingRows = rows.filter(x=>  isOk(x));
   const dueSum = dueRows.reduce((a,x)=>a + x.amt, 0);
   const ingSum = ingRows.reduce((a,x)=>a + x.amt, 0);
+  const waitN = dueRows.filter(x=> !cycDone(x.r, x.c)).length;
 
   /* 계산서 낼 곳 — 발행 예정일을 적어 둔 현장 중 아직 표시 안 한 곳 */
   const invTodo = dueRows.filter(x=> x.r.invoice && !x.c.inv);
 
   let h = `<div class="stbar">
       <div class="l"><span>못 받은 돈</span><b>${won(dueSum)}원</b></div>
-      <div class="r"><span class="p">이번 달 받음 ${won(gotM)}원 · ${gotN}건</span></div>
+      <div class="r"><span class="p">이번 달 받음 ${won(gotM)}원 · ${gotN}건</span><span class="g">청소 중 ${waitN}곳 포함</span></div>
     </div>`;
 
   if(invTodo.length) h += `<div class="invbar" onclick="openInvTodo()">
       <i>!</i><span>계산서 아직 안 낸 곳 <b>${invTodo.length}곳</b></span><u>보기</u></div>`;
 
-  dueRows.sort((a,b)=>{ const ka = justPaid(a) ? ((cycHistOf(a.r.name)[0]||{}).to || a.c.to) : a.c.to,
-                        kb = justPaid(b) ? ((cycHistOf(b.r.name)[0]||{}).to || b.c.to) : b.c.to;
-                        return ka < kb ? -1 : ka > kb ? 1 : b.amt - a.amt; });
+  dueRows.sort((a,b)=> (a.c.to < b.c.to ? -1 : a.c.to > b.c.to ? 1 : b.amt - a.amt));
   ingRows.sort((a,b)=> (b.r.total0 - a.r.total0) || (a.r.name < b.r.name ? -1 : 1));
 
   const drawRow = (ING) => ({r,c,amt})=>{
@@ -2571,14 +2579,16 @@ function renderSettle(){
     const settled = lp && !cycDone(r, c);
     const ptag = fresh
       ? `<div class="ptag"><i>\u2713</i>${won(lp.amount)}원 \u00b7 ${mdy(lp.paidD)} 받음<u onclick="openPastPay('${esc(r.name)}', 0)">날짜 고치기</u><u onclick="undoPaid('${esc(r.name)}')">되돌리기</u></div>` : '';
-    return `<div class="srow ${op?'open':''} ${ING&&!settled?'ingrow':''} ${settled?'okrow':''}">
+    const working = !settled && !cycDone(r, c);       /* 아직 청소 중 */
+    const invTxt = r.invDay ? `${r.invDay}일` : '';
+    return `<div class="srow ${op?'open':''} ${working?'workrow':''} ${settled?'okrow':''}">
         <div class="rmain" data-act="strow" data-k="${esc(r.name)}">
-          <div class="rn">${esc(r.name)}<span class="rsp">${settled ? `${spanTxt(lp)} \u00b7 <b class="okt">정산완료</b>` : sub}</span></div>
+          <div class="rn">${esc(r.name)}${r.prepay?'<b class="pre">선</b>':''}<span class="rsp">${settled ? `${spanTxt(lp)} \u00b7 <b class="okt">정산완료</b>` : sub}</span>
+            ${(!settled && invTxt) ? `<span class="invnote">계산서 ${esc(invTxt)}</span>` : ''}</div>
           <div class="ra">${won(settled ? lp.amount : amt)}원</div>
         </div>
-        ${settled ? '' : (ING
-          ? (r.billing === 'per' && !(c.dates||[]).length
-              ? `<div class="rck"><button class="gotbtn day" onclick="openCycDates('${esc(r.name)}')">날짜</button></div>` : '')
+        ${settled ? '' : (r.billing === 'per' && !(c.dates||[]).length
+          ? `<div class="rck"><button class="gotbtn day" onclick="openCycDates('${esc(r.name)}')">날짜</button></div>`
           : `<div class="rck"><button class="gotbtn" onclick="cycPaid('${esc(r.name)}')">받음</button></div>`)}
         ${ptag}
         ${det}
@@ -2586,7 +2596,7 @@ function renderSettle(){
   };
 
   h += dueRows.length ? dueRows.map(drawRow(false)).join('')
-                      : `<div class="secnone">받을 것이 없습니다 — 아래는 아직 일하는 중입니다</div>`;
+                      : `<div class="secnone">다 받았습니다</div>`;
   if(ingRows.length){
     h += `<div class="ingttl">아직 일하는 중 <span>${ingRows.length}곳 · 청소가 끝나면 위로 올라옵니다</span></div>`;
     h += ingRows.map(drawRow(true)).join('');
@@ -2600,8 +2610,9 @@ function renderSettle(){
         <div class="exrow tot"><span>경비 합계</span><b>${won(ex.tot)}원</b></div>
       </div>`;
   }
-  h += `<div class="hint" style="padding:10px 12px 22px">돈이 들어오면 <b>[받음]</b>만 누르시면 됩니다. <b>오늘 날짜</b>로 들어갑니다.
-      다른 날 들어온 거면 <b>줄을 눌러</b> 받은 기록에서 날짜를 고치세요.</div>`;
+  h += `<div class="hint" style="padding:10px 12px 22px"><b>아직 안 받은 곳이 전부 위에</b> 있습니다. 밀린 순서로 정렬됩니다.
+      연한 줄은 <b>아직 청소하는 중</b>이고, <b>(선)</b>은 선불로 받는 곳입니다.
+      돈이 들어오면 <b>[받음]</b>만 누르시면 아래 정산완료로 내려갑니다.</div>`;
 
   const keepTop = calwrap.scrollTop;
   calwrap.innerHTML = h;
@@ -3100,7 +3111,7 @@ function editSite(id, presetDate){
           weekday: pd?pd.getDay():1, dates: pd?[presetDate]:[] },
     color: nextColorIdx(null), mins: 0,
     startDate:'', address:'', manager:'', bizno:'', email:'', client:'', entry:'', parking:'', work:'', note:'',
-    amount:0, billing:'monthly', invoice:false, invDay:0, payType:'post', payDay:0, paused:false, skips:[]
+    amount:0, billing:'monthly', invoice:false, invDay:0, prepay:false, payType:'post', payDay:0, paused:false, skips:[]
   };
   form.rep = Object.assign({ type:'weekly', days:[], anchor: todayYmd(), day:1, nth:1, weekday:1, dates:[] }, form.rep||{});
   if(!Array.isArray(form.rep.dates)) form.rep.dates = [];
@@ -3193,7 +3204,9 @@ function editSite(id, presetDate){
     <div class="swrow"><div><b>계산서 발행</b><div class="hint">발행하는 곳인지 표시만 합니다</div></div><div class="sw" id="fInvoice"></div></div>
     <div class="field" style="margin-top:12px"><label>계산서 발행 예정일 (매월 며칠)</label>
       <input type="number" id="fInvDay" min="1" max="31" inputmode="numeric" placeholder="예) 5 — 비워두면 표시 안 함">
-      <div class="hint">여기에 날짜를 적어 두면 정산금액 탭에 <b>매달</b> "계산서 5일 발행 예정"으로 뜹니다. 잊지 않고 발행하시라고 미리 알려 주는 표시입니다.</div></div>
+      <div class="hint">여기에 날짜를 적어 두면 정산 화면 줄에 <b>"계산서 5일"</b>이라고 늘 보입니다.</div></div>
+
+    <div class="swrow" style="margin-top:16px"><div><b>선불로 받는 곳</b><div class="hint">일하기 전에 미리 받는 곳입니다. 현장 이름 옆에 <b>(선)</b>이 붙습니다</div></div><div class="sw" id="fPre"></div></div>
 
     <div class="field" style="margin-top:16px"><label>정산 끊는 날 (매월 며칠에 끊을지)</label>
       <input type="number" id="fCutDay" min="1" max="31" inputmode="numeric" placeholder="예) 5 — 비워두면 그 달 1일~말일">
@@ -3283,7 +3296,7 @@ function bindForm(){
   });
 
   const sw = (sel,key)=>{ const e=$(sel); e.classList.toggle('on', !!form[key]); e.onclick=()=>{ form[key]=!form[key]; e.classList.toggle('on', form[key]); }; };
-  sw('#fInvoice','invoice'); sw('#fPaused','paused');
+  sw('#fInvoice','invoice'); sw('#fPaused','paused'); sw('#fPre','prepay');
   const iv = $('#fInvDay');
   if(iv){
     iv.value = +form.invDay ? +form.invDay : '';
