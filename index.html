@@ -677,7 +677,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v29';
+const APP_VER = 'v30';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2290,6 +2290,16 @@ function lastWorkDay(r, c){
   return '';
 }
 /* 일이 다 끝났으면 '받을 것', 아직 남았으면 '진행중' */
+/* 계산서를 낼 때가 됐나 — 발행 예정일이 지났거나, 청소가 다 끝났으면 */
+function invDue(r, c){
+  if(!r.invoice || c.inv) return false;            /* 안 내는 곳이거나 이미 표시함 */
+  if(r.invDay){
+    const n = new Date();
+    const dim = daysInMonth(n.getFullYear(), n.getMonth());
+    return n.getDate() >= Math.min(+r.invDay, dim);
+  }
+  return cycDone(r, c);                            /* 날짜를 안 적어 뒀으면 청소 끝난 뒤 */
+}
 function cycDone(r, c){
   const t = todayYmd();
   /* 회당은 일한 날짜를 직접 넣으므로, 하나라도 넣으면 받을 차례로 봅니다 */
@@ -2460,13 +2470,12 @@ function dtClear(){ const f = DTPICK && DTPICK.onClear; DTPICK = null; closeShee
 
 function openInvTodo(){
   const rows = settleRows().map(r=>{ const c = cycOf(r); return { r, c, amt: cycAmount(r, c) }; })
-    .filter(x=> cycDone(x.r, x.c) && x.r.invoice && !x.c.inv);
+    .filter(x=> invDue(x.r, x.c));
   openSheet('계산서 아직 안 낸 곳', `
-    <div class="endbox">청소가 끝났는데 <b>계산서 발행 표시를 안 한 곳</b>입니다.
-      발행하셨으면 눌러서 표시해 두세요.</div>
+    <div class="endbox"><b>계산서 낼 때가 된 곳</b>입니다. 적어 두신 발행 예정일이 지났거나 청소가 끝난 곳이에요.<br>발행하셨으면 눌러서 표시해 두세요.</div>
     ${rows.length ? rows.map(x=>`
       <div class="itrow" onclick="closeSheet();cycInv('${esc(x.r.name)}')">
-        <div class="n">${esc(x.r.name)}<i>${x.r.invDay ? x.r.invDay + "일 발행 예정" : cycLabel(x.r, x.c) + " 계산서"}</i></div>
+        <div class="n">${esc(x.r.name)}<i>${cycLabel(x.r, x.c)}${x.r.invDay ? " \u00b7 " + x.r.invDay + "일 발행" : ""}</i></div>
         <b>${won(x.amt)}원</b></div>`).join('')
       : '<div class="hnone">없습니다</div>'}
   `);
@@ -2540,7 +2549,7 @@ function renderSettle(){
   const waitN = dueRows.filter(x=> !cycDone(x.r, x.c)).length;
 
   /* 계산서 낼 곳 — 발행 예정일을 적어 둔 현장 중 아직 표시 안 한 곳 */
-  const invTodo = dueRows.filter(x=> x.r.invoice && !x.c.inv);
+  const invTodo = rows.filter(x=> invDue(x.r, x.c));
 
   let h = `<div class="stbar">
       <div class="l"><span>못 받은 돈</span><b>${won(dueSum)}원</b></div>
@@ -2558,8 +2567,8 @@ function renderSettle(){
     const per = r.billing === 'per';
     const sub = cycLabel(r, c);
     const hist = cycHistOf(r.name);
-    const det = !op ? '' : `<div class="rdet">
-        <div class="span">${spanTxt(c)} 정산분${per?` · 회당 ${won(parseAmt(r.amount))}원 × ${c.dates.length}회`:''}</div>
+    const det0 = () => `<div class="rdet">
+        <div class="span">${settled ? `${spanTxt(lp)} 받음 \u00b7 다음은 ${spanTxt(c)}` : `${spanTxt(c)} 정산분`}${per?` \u00b7 회당 ${won(parseAmt(r.amount))}원 × ${c.dates.length}회`:''}</div>
         <div class="meta">${r.kids?`현장 ${r.kids.length}곳 묶음`:(per?'회당 정산':'월 정액')}${r.cutDay?` · 매월 ${r.cutDay}일에 끊음`:''}</div>
         ${r.kids?`<div class="kids">${r.kids.map(x=>`<div class="kid"><span>${esc(x.name)}</span><b>${won(x.total)}원</b></div>`).join('')}</div>`:''}
         ${per?`<button class="rfix" onclick="openCycDates('${esc(r.name)}')">일한 날짜 넣기 · 고치기</button>`:''}
@@ -2591,14 +2600,14 @@ function renderSettle(){
           ? `<div class="rck"><button class="gotbtn day" onclick="openCycDates('${esc(r.name)}')">날짜</button></div>`
           : `<div class="rck"><button class="gotbtn" onclick="cycPaid('${esc(r.name)}')">받음</button></div>`)}
         ${ptag}
-        ${det}
+        ${op ? det0() : ''}
       </div>`;
   };
 
   h += dueRows.length ? dueRows.map(drawRow(false)).join('')
                       : `<div class="secnone">다 받았습니다</div>`;
   if(ingRows.length){
-    h += `<div class="ingttl">아직 일하는 중 <span>${ingRows.length}곳 · 청소가 끝나면 위로 올라옵니다</span></div>`;
+    h += `<div class="ingttl">정산완료 <span>${ingRows.length}곳 · 다음 청소가 끝나면 위로 올라옵니다</span></div>`;
     h += ingRows.map(drawRow(true)).join('');
   }
 
