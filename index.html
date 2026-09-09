@@ -653,7 +653,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v24';
+const APP_VER = 'v25';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -1402,7 +1402,7 @@ function renderTop(){
 }
 
 let LAST_CAL_TAB = null;
-let PAIDNOW = new Set();   /* 방금 [입] 누른 현장 — 그 자리에 도장만 남깁니다 */
+let PAIDNOW = new Map();   /* 방금 [입] 누른 현장 → 그때 보던 탭. 그 탭 그 자리에 도장만 남깁니다 */
 let SEARCH_ON = false;
 let SCHED_MODE = 'once';        /* 스케줄 탭 — once | personal */
 let PERS_EDIT = null;           /* 수정 중인 개인 일정 id */
@@ -2451,7 +2451,7 @@ function doPaid(name, paidD){
   if(D.cycH[name].length > 24) D.cycH[name].length = 24;
   D.cycH[name].sort((a,b)=> a.paidD < b.paidD ? 1 : -1);
   if(D.cycH[name].length > 36) D.cycH[name].length = 36;
-  PAIDNOW.add(name);
+  PAIDNOW.set(name, TAB);
   D.cyc[name] = nextCycle(c, r);
   save(true); renderSettle();
   toast(`${spanTxt(c)} · ${mdy(paidD)} 받음으로 넣었습니다`);
@@ -2483,12 +2483,13 @@ function renderSettle(){
   let gotM = 0, gotN = 0;
   rows.forEach(x=> cycHistOf(x.r.name).forEach(h=>{ if((h.paidD||'').slice(0,7) === tk){ gotM += h.amount; gotN++; } }));
 
-  /* 방금 [입]을 누른 곳은 그 자리에 도장만 붙은 채 남습니다 (탭을 옮기면 정리) */
+  /* 방금 [입]을 누른 곳은 '누른 그 탭' 그 자리에 도장만 붙은 채 남습니다 (탭을 옮기면 정리) */
   const justPaid = x => PAIDNOW.has(x.r.name);
-  const dueRows = rows.filter(x=>  cycDone(x.r, x.c) || justPaid(x));
-  const ingRows = rows.filter(x=> !cycDone(x.r, x.c) && !justPaid(x));
+  const stayHere = x => PAIDNOW.get(x.r.name) === TAB;
+  const dueRows = rows.filter(x=> justPaid(x) ? stayHere(x) :  cycDone(x.r, x.c));
+  const ingRows = rows.filter(x=> justPaid(x) ? stayHere(x) : !cycDone(x.r, x.c));
   const dueSum = dueRows.filter(x=>!justPaid(x)).reduce((a,x)=>a + x.amt, 0);
-  const ingSum = ingRows.reduce((a,x)=>a + x.amt, 0);
+  const ingSum = ingRows.filter(x=>!justPaid(x)).reduce((a,x)=>a + x.amt, 0);
   const ING = (TAB === 4);
 
   let h = ING
