@@ -101,6 +101,11 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .srow .rsp{display:block;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:-.2px;margin-top:2px}
 .srow .ra{margin-left:auto;font-size:15.5px;font-weight:900;white-space:nowrap}
 .srow .rck{display:flex;gap:5px;padding:0 2px}
+.srow.okrow{background:#f0fdf9;border:1px solid #a7f3d0;box-shadow:none}
+.srow.okrow .ra{color:#059669}
+.srow.okrow .rn{color:#065f46}
+.rsp b.okt{color:#047857;font-weight:900}
+.gotbtn.day{background:#fff;color:#b45309;border:1px solid #fed7aa}
 .gotbtn{padding:9px 14px;border-radius:10px;background:#0f172a;color:#fff;font-size:13.5px;font-weight:900}
 .srow.ingrow .rmain{padding-right:14px}
 .invbar{display:flex;align-items:center;gap:8px;margin:0 6px 10px;padding:11px 13px;border-radius:12px;
@@ -666,7 +671,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v27';
+const APP_VER = 'v28';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2280,6 +2285,8 @@ function lastWorkDay(r, c){
 /* 일이 다 끝났으면 '받을 것', 아직 남았으면 '진행중' */
 function cycDone(r, c){
   const t = todayYmd();
+  /* 회당은 일한 날짜를 직접 넣으므로, 하나라도 넣으면 받을 차례로 봅니다 */
+  if(r.billing === 'per') return (c.dates||[]).length > 0;
   const last = lastWorkDay(r, c);
   return last ? (last <= t) : (c.to <= t);
 }
@@ -2288,17 +2295,12 @@ function cycHistOf(name){ D.cycH = D.cycH || {}; return D.cycH[name] || []; }
 function cycAmount(r, c){
   return r.billing === 'per' ? parseAmt(r.amount) * (c.dates||[]).length : r.total0;
 }
-/* 화면에 보이는 말 — 8월분 / 8/5 - 9/5 / 8/2 · 8/19 2회 */
+/* 화면에 보이는 말 — 언제나 날짜 구간 */
 function cycLabel(r, c){
   if(r.billing === 'per'){
     const n = (c.dates||[]).length;
-    if(!n) return '<i class="need">일한 날짜를 넣어 주세요</i>';
-    return `${datesTxt(c)} · ${n}회`;
+    return n ? `${spanTxt(c)} · ${n}회` : `${spanTxt(c)} · <i class="need">일한 날짜를 넣어 주세요</i>`;
   }
-  if(r.cutDay) return spanTxt(c);
-  const a = parseYmd(c.from), b = parseYmd(c.to);
-  if(a.getDate() === 1 && b.getDate() === daysInMonth(b.getFullYear(), b.getMonth()) && a.getMonth() === b.getMonth())
-    return `${a.getMonth()+1}월분`;
   return spanTxt(c);
 }
 function spanTxt(c){
@@ -2522,13 +2524,13 @@ function renderSettle(){
 
   /* 방금 [받음]을 누른 곳은 그 자리에 도장만 붙은 채 남습니다 */
   const justPaid = x => PAIDNOW.has(x.r.name);
-  const dueRows = rows.filter(x=> justPaid(x) ||  cycDone(x.r, x.c));
-  const ingRows = rows.filter(x=> !justPaid(x) && !cycDone(x.r, x.c));
-  const dueSum = dueRows.filter(x=>!justPaid(x)).reduce((a,x)=>a + x.amt, 0);
+  const dueRows = rows.filter(x=> cycDone(x.r, x.c));
+  const ingRows = rows.filter(x=> !cycDone(x.r, x.c));
+  const dueSum = dueRows.reduce((a,x)=>a + x.amt, 0);
   const ingSum = ingRows.reduce((a,x)=>a + x.amt, 0);
 
   /* 계산서 낼 곳 — 발행 예정일을 적어 둔 현장 중 아직 표시 안 한 곳 */
-  const invTodo = dueRows.filter(x=> x.r.invoice && !x.c.inv && !justPaid(x));
+  const invTodo = dueRows.filter(x=> x.r.invoice && !x.c.inv);
 
   let h = `<div class="stbar">
       <div class="l"><span>못 받은 돈</span><b>${won(dueSum)}원</b></div>
@@ -2564,17 +2566,20 @@ function renderSettle(){
         ${hist.length?`<button class="rfix undo" onclick="undoPaid('${esc(r.name)}')">방금 받은 것 되돌리기</button>`:''}
       </div>`;
     const lp = cycHistOf(r.name)[0];
-    const fresh = lp && PAIDNOW.has(r.name);
+    const fresh = false;
+    /* 받은 회차는 그 줄에 '정산완료'로 남습니다 — 다음 구간이 시작되면 그때 넘어갑니다 */
+    const settled = lp && !cycDone(r, c);
     const ptag = fresh
       ? `<div class="ptag"><i>\u2713</i>${won(lp.amount)}원 \u00b7 ${mdy(lp.paidD)} 받음<u onclick="openPastPay('${esc(r.name)}', 0)">날짜 고치기</u><u onclick="undoPaid('${esc(r.name)}')">되돌리기</u></div>` : '';
-    return `<div class="srow ${op?'open':''} ${ING?'ingrow':''}">
+    return `<div class="srow ${op?'open':''} ${ING&&!settled?'ingrow':''} ${settled?'okrow':''}">
         <div class="rmain" data-act="strow" data-k="${esc(r.name)}">
-          <div class="rn">${esc(r.name)}<span class="rsp">${sub}</span></div>
-          <div class="ra">${won(amt)}원</div>
+          <div class="rn">${esc(r.name)}<span class="rsp">${settled ? `${spanTxt(lp)} \u00b7 <b class="okt">정산완료</b>` : sub}</span></div>
+          <div class="ra">${won(settled ? lp.amount : amt)}원</div>
         </div>
-        ${ING ? '' : `<div class="rck">
-          <button class="gotbtn" onclick="cycPaid('${esc(r.name)}')">받음</button>
-        </div>`}
+        ${settled ? '' : (ING
+          ? (r.billing === 'per' && !(c.dates||[]).length
+              ? `<div class="rck"><button class="gotbtn day" onclick="openCycDates('${esc(r.name)}')">날짜</button></div>` : '')
+          : `<div class="rck"><button class="gotbtn" onclick="cycPaid('${esc(r.name)}')">받음</button></div>`)}
         ${ptag}
         ${det}
       </div>`;
@@ -2583,7 +2588,7 @@ function renderSettle(){
   h += dueRows.length ? dueRows.map(drawRow(false)).join('')
                       : `<div class="secnone">받을 것이 없습니다 — 아래는 아직 일하는 중입니다</div>`;
   if(ingRows.length){
-    h += `<div class="ingttl">아직 일하는 중 <span>${ingRows.length}곳 · ${won(ingSum)}원</span></div>`;
+    h += `<div class="ingttl">아직 일하는 중 <span>${ingRows.length}곳 · 청소가 끝나면 위로 올라옵니다</span></div>`;
     h += ingRows.map(drawRow(true)).join('');
   }
 
