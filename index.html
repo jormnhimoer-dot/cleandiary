@@ -101,6 +101,22 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .srow .rsp{display:block;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:-.2px;margin-top:2px}
 .srow .ra{margin-left:auto;font-size:15.5px;font-weight:900;white-space:nowrap}
 .srow .rck{display:flex;gap:5px;padding:0 2px}
+.gotbtn{padding:9px 14px;border-radius:10px;background:#0f172a;color:#fff;font-size:13.5px;font-weight:900}
+.srow.ingrow .rmain{padding-right:14px}
+.invbar{display:flex;align-items:center;gap:8px;margin:0 6px 10px;padding:11px 13px;border-radius:12px;
+  background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;font-weight:800}
+.invbar i{font-style:normal;width:19px;height:19px;line-height:19px;text-align:center;border-radius:50%;background:#f97316;color:#fff;font-size:12px}
+.invbar u{text-decoration:none;margin-left:auto;color:#c2410c;font-weight:900}
+.ingline{padding:14px 13px 2px;font-size:12px;font-weight:700;color:#94a3b8;text-align:center}
+.ingttl{padding:18px 13px 8px;font-size:12.5px;font-weight:900;color:#94a3b8}
+.ingttl span{font-weight:800;color:#cbd5e1}
+.cklegend .tp2{font-weight:700}
+.cklegend .tp2 b{display:inline;width:auto;height:auto;background:none;color:#334155;font-size:11.5px;margin:0}
+.rfix.invon{color:#047857;border-color:#a7f3d0;background:#ecfdf5}
+.itrow{display:flex;align-items:center;gap:10px;padding:13px 4px;border-bottom:1px solid var(--line)}
+.itrow .n{font-size:15px;font-weight:800}
+.itrow .n i{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:#94a3b8;margin-top:2px}
+.itrow b{margin-left:auto;font-size:15px;font-weight:900}
 .stbar.ing{background:#334155}
 .stbar .r .g{color:#94a3b8;font-weight:800}
 .secnone{margin:0 6px 8px;padding:22px;background:#fff;border-radius:13px;color:#94a3b8;font-size:13px;font-weight:700;text-align:center}
@@ -112,7 +128,8 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .srow .ptag{width:100%;order:9;margin:0 6px 9px 14px;font-size:11.5px;font-weight:800;color:#047857;
   background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9px;padding:6px 9px;display:flex;gap:6px;align-items:center;line-height:1.3}
 .srow .ptag i{font-style:normal;color:#059669}
-.srow .ptag u{text-decoration:none;margin-left:auto;color:#0891b2;font-weight:800;white-space:nowrap;padding-left:8px}
+.srow .ptag u{text-decoration:none;color:#0891b2;font-weight:800;white-space:nowrap;padding-left:10px}
+.srow .ptag u:first-of-type{margin-left:auto}
 .dot{border:0;border-radius:9px;padding:7px 9px;font-size:12.5px;font-weight:900;background:#f1f5f9;color:#94a3b8;cursor:pointer;line-height:1.1}
 .dot i{display:block;font-style:normal;font-size:9.5px;font-weight:800;margin-top:1px}
 .dot.inv.on{background:#fef3c7;color:#b45309}
@@ -378,7 +395,7 @@ button{border:none;background:none;cursor:pointer;padding:0}
 
 /* ---------- tabbar ---------- */
 .tabbar{
-  flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);
+  flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);
   background:var(--card);border-top:1px solid var(--line);
   /* 아이폰이 홈바 높이를 0으로 알려줄 때가 있어 최소값을 못 박아 둡니다 */
   padding:6px 0 calc(max(var(--safe-b), 20px) + 6px);
@@ -595,13 +612,9 @@ button{border:none;background:none;cursor:pointer;padding:0}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M15 3v5h5M8 13h8M8 17h5"/></svg>
       <span class="lb">가계부</span>
     </button>
-    <button class="tab" data-tab="4">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
-      <span class="lb">진행중</span>
-    </button>
     <button class="tab" data-tab="3">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M8 6.5h8"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M8.5 18h.01M12 18h.01M15.5 14.5v3.5"/></svg>
-      <span class="lb">받을 것</span>
+      <span class="lb">정산금액</span>
     </button>
   </nav>
 
@@ -653,7 +666,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v25';
+const APP_VER = 'v26';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -1385,12 +1398,12 @@ function syncArrows(){
   if(t) t.style.display = isSettleTab() ? 'none' : 'flex';
 }
 
-const isSettleTab = () => (TAB===3 || TAB===4);
+const isSettleTab = () => (TAB===3);
 function renderTop(){
-  $('#tTitle').textContent = ['정기청소','스케줄','가계부','받을 것','진행중'][TAB];
+  $('#tTitle').textContent = ['정기청소','스케줄','가계부','정산금액'][TAB];
   if(isSettleTab()){
     const n = new Date();
-    $('#tRange').textContent = TAB===4 ? '아직 일이 안 끝난 현장' : `${n.getMonth()+1}월 ${n.getDate()}일 기준`;
+    $('#tRange').textContent = `${n.getMonth()+1}월 ${n.getDate()}일 기준`;
     $('#tRange').classList.add('big');
   }else{
     $('#tRange').textContent = `${anchor.getFullYear()}년 ${anchor.getMonth()+1}월`;
@@ -2275,6 +2288,19 @@ function cycHistOf(name){ D.cycH = D.cycH || {}; return D.cycH[name] || []; }
 function cycAmount(r, c){
   return r.billing === 'per' ? parseAmt(r.amount) * (c.dates||[]).length : r.total0;
 }
+/* 화면에 보이는 말 — 8월분 / 8/5 - 9/5 / 8/2 · 8/19 2회 */
+function cycLabel(r, c){
+  if(r.billing === 'per'){
+    const n = (c.dates||[]).length;
+    if(!n) return '<i class="need">일한 날짜를 넣어 주세요</i>';
+    return `${datesTxt(c)} · ${n}회`;
+  }
+  if(r.cutDay) return spanTxt(c);
+  const a = parseYmd(c.from), b = parseYmd(c.to);
+  if(a.getDate() === 1 && b.getDate() === daysInMonth(b.getFullYear(), b.getMonth()) && a.getMonth() === b.getMonth())
+    return `${a.getMonth()+1}월분`;
+  return spanTxt(c);
+}
 function spanTxt(c){
   const a = parseYmd(c.from), b = parseYmd(c.to);
   return `${a.getMonth()+1}/${a.getDate()} - ${b.getMonth()+1}/${b.getDate()}`;
@@ -2423,6 +2449,19 @@ function dtGo(d){
 }
 function dtClear(){ const f = DTPICK && DTPICK.onClear; DTPICK = null; closeSheet(); if(f) f(); }
 
+function openInvTodo(){
+  const rows = settleRows().map(r=>{ const c = cycOf(r); return { r, c, amt: cycAmount(r, c) }; })
+    .filter(x=> cycDone(x.r, x.c) && x.r.invoice && !x.c.inv);
+  openSheet('계산서 아직 안 낸 곳', `
+    <div class="endbox">청소가 끝났는데 <b>계산서 발행 표시를 안 한 곳</b>입니다.
+      발행하셨으면 눌러서 표시해 두세요.</div>
+    ${rows.length ? rows.map(x=>`
+      <div class="itrow" onclick="closeSheet();cycInv('${esc(x.r.name)}')">
+        <div class="n">${esc(x.r.name)}<i>${x.r.invDay ? x.r.invDay + "일 발행 예정" : cycLabel(x.r, x.c) + " 계산서"}</i></div>
+        <b>${won(x.amt)}원</b></div>`).join('')
+      : '<div class="hnone">없습니다</div>'}
+  `);
+}
 function cycInv(name){
   const r = settleRows().find(x=>x.name===name); if(!r) return;
   const c = cycOf(r);
@@ -2436,11 +2475,9 @@ function cycInv(name){
 }
 function cycPaid(name){
   const r = settleRows().find(x=>x.name===name); if(!r) return;
-  const c = cycOf(r), amt = cycAmount(r, c);
+  const c = cycOf(r);
   if(r.billing==='per' && !(c.dates||[]).length){ toast('일한 날짜를 먼저 넣어 주세요'); openCycDates(name); return; }
-  dateSheet('입금 — 언제 들어왔나요?', name,
-    `<b>${spanTxt(c)} 정산분 ${won(amt)}원</b><br>통장에 찍힌 날로 넣어 주세요. 그 날짜가 든 <b>달</b>의 월별 기록에 쌓입니다.`,
-    '', d => doPaid(name, d), null);
+  doPaid(name, todayYmd());          /* 오늘로 바로 넣습니다 — 틀리면 줄을 눌러 고칩니다 */
 }
 function doPaid(name, paidD){
   const r = settleRows().find(x=>x.name===name); if(!r) return;
@@ -2454,7 +2491,7 @@ function doPaid(name, paidD){
   PAIDNOW.set(name, TAB);
   D.cyc[name] = nextCycle(c, r);
   save(true); renderSettle();
-  toast(`${spanTxt(c)} · ${mdy(paidD)} 받음으로 넣었습니다`);
+  toast(`${spanTxt(c)} ${won(amt)}원 · 오늘(${mdy(paidD)}) 받음`);
 }
 function undoPaid(name){
   const h = cycHistOf(name); if(!h.length) return;
@@ -2483,46 +2520,40 @@ function renderSettle(){
   let gotM = 0, gotN = 0;
   rows.forEach(x=> cycHistOf(x.r.name).forEach(h=>{ if((h.paidD||'').slice(0,7) === tk){ gotM += h.amount; gotN++; } }));
 
-  /* 방금 [입]을 누른 곳은 '누른 그 탭' 그 자리에 도장만 붙은 채 남습니다 (탭을 옮기면 정리) */
+  /* 방금 [받음]을 누른 곳은 그 자리에 도장만 붙은 채 남습니다 */
   const justPaid = x => PAIDNOW.has(x.r.name);
-  const stayHere = x => PAIDNOW.get(x.r.name) === TAB;
-  const dueRows = rows.filter(x=> justPaid(x) ? stayHere(x) :  cycDone(x.r, x.c));
-  const ingRows = rows.filter(x=> justPaid(x) ? stayHere(x) : !cycDone(x.r, x.c));
+  const dueRows = rows.filter(x=> justPaid(x) ||  cycDone(x.r, x.c));
+  const ingRows = rows.filter(x=> !justPaid(x) && !cycDone(x.r, x.c));
   const dueSum = dueRows.filter(x=>!justPaid(x)).reduce((a,x)=>a + x.amt, 0);
-  const ingSum = ingRows.filter(x=>!justPaid(x)).reduce((a,x)=>a + x.amt, 0);
-  const ING = (TAB === 4);
+  const ingSum = ingRows.reduce((a,x)=>a + x.amt, 0);
 
-  let h = ING
-    ? `<div class="stbar ing">
-        <div class="l"><span>진행중</span><b>${won(ingSum)}원</b></div>
-        <div class="r"><span class="g">${ingRows.length}곳 · 청소가 다 끝나면 '받을 것'으로 올라갑니다</span></div>
-      </div>`
-    : `<div class="stbar">
-        <div class="l"><span>받을 것</span><b>${won(dueSum)}원</b></div>
-        <div class="r"><span class="p">이번 달 받음 ${won(gotM)}원 · ${gotN}건</span>
-          <span class="g">진행중 ${won(ingSum)}원</span></div>
-      </div>`;
+  /* 계산서 낼 곳 — 발행 예정일을 적어 둔 현장 중 아직 표시 안 한 곳 */
+  const invTodo = dueRows.filter(x=> x.r.invoice && !x.c.inv && !justPaid(x));
 
-  /* 방금 받은 곳은 '받기 전 구간' 기준으로 정렬해 자리가 안 바뀌게 합니다 */
-  const sortKey = x => justPaid(x) ? ((cycHistOf(x.r.name)[0]||{}).to || x.c.to) : x.c.to;
-  rows = ING ? ingRows.sort((a,b)=> (b.r.total0 - a.r.total0) || (a.r.name < b.r.name ? -1 : 1))
-             : dueRows.sort((a,b)=>{ const ka = sortKey(a), kb = sortKey(b);
-                 return ka < kb ? -1 : ka > kb ? 1 : b.amt - a.amt; });
+  let h = `<div class="stbar">
+      <div class="l"><span>못 받은 돈</span><b>${won(dueSum)}원</b></div>
+      <div class="r"><span class="p">이번 달 받음 ${won(gotM)}원 · ${gotN}건</span></div>
+    </div>`;
 
-  h += `<div class="cklegend"><span><b class="c1">계</b> 계산서</span><span><b class="c2">입</b> 입금 받음</span><span class="tp">줄을 누르면 자세히</span></div>`;
+  if(invTodo.length) h += `<div class="invbar" onclick="openInvTodo()">
+      <i>!</i><span>계산서 아직 안 낸 곳 <b>${invTodo.length}곳</b></span><u>보기</u></div>`;
 
-  h += rows.map(({r,c,amt})=>{
+  dueRows.sort((a,b)=>{ const ka = justPaid(a) ? ((cycHistOf(a.r.name)[0]||{}).to || a.c.to) : a.c.to,
+                        kb = justPaid(b) ? ((cycHistOf(b.r.name)[0]||{}).to || b.c.to) : b.c.to;
+                        return ka < kb ? -1 : ka > kb ? 1 : b.amt - a.amt; });
+  ingRows.sort((a,b)=> (b.r.total0 - a.r.total0) || (a.r.name < b.r.name ? -1 : 1));
+
+  const drawRow = (ING) => ({r,c,amt})=>{
     const op = OPENROW.has(r.name);
     const per = r.billing === 'per';
-    const sub = per
-      ? (datesTxt(c) ? `${datesTxt(c)} · ${c.dates.length}회` : '<i class="need">일한 날짜를 넣어 주세요</i>')
-      : spanTxt(c);
+    const sub = cycLabel(r, c);
     const hist = cycHistOf(r.name);
     const det = !op ? '' : `<div class="rdet">
         <div class="span">${spanTxt(c)} 정산분${per?` · 회당 ${won(parseAmt(r.amount))}원 × ${c.dates.length}회`:''}</div>
         <div class="meta">${r.kids?`현장 ${r.kids.length}곳 묶음`:(per?'회당 정산':'월 정액')}${r.cutDay?` · 매월 ${r.cutDay}일에 끊음`:''}</div>
         ${r.kids?`<div class="kids">${r.kids.map(x=>`<div class="kid"><span>${esc(x.name)}</span><b>${won(x.total)}원</b></div>`).join('')}</div>`:''}
         ${per?`<button class="rfix" onclick="openCycDates('${esc(r.name)}')">일한 날짜 넣기 · 고치기</button>`:''}
+        ${r.invoice ? `<button class="rfix ${c.inv?'invon':''}" onclick="cycInv('${esc(r.name)}')">계산서 ${c.inv&&c.invD?`발행함 · ${mdy(c.invD)}`:'발행 표시하기'}</button>` : ''}
         <button class="rfix" onclick="openCycSpan('${esc(r.name)}')">정산 구간 고치기</button>
         ${r.kids?'':`<button class="rfix" data-act="stsite" data-name="${esc(r.name)}">현장 수정</button>`}
         <div class="hsec">받은 기록 ${hist.length?`${hist.length}건`:''}</div>
@@ -2533,26 +2564,26 @@ function renderSettle(){
         ${hist.length?`<button class="rfix undo" onclick="undoPaid('${esc(r.name)}')">방금 받은 것 되돌리기</button>`:''}
       </div>`;
     const lp = cycHistOf(r.name)[0];
-    const fresh = lp && lp.paidD && daysAgo(lp.paidD) <= 35;
+    const fresh = lp && PAIDNOW.has(r.name);
     const ptag = fresh
-      ? `<div class="ptag"><i>\u2713</i>${spanTxt(lp)} 정산분 ${won(lp.amount)}원 \u00b7 ${mdy(lp.paidD)} 받음<u onclick="undoPaid('${esc(r.name)}')">되돌리기</u></div>` : '';
+      ? `<div class="ptag"><i>\u2713</i>${won(lp.amount)}원 \u00b7 ${mdy(lp.paidD)} 받음<u onclick="openPastPay('${esc(r.name)}', 0)">날짜 고치기</u><u onclick="undoPaid('${esc(r.name)}')">되돌리기</u></div>` : '';
     return `<div class="srow ${op?'open':''} ${ING?'ingrow':''}">
         <div class="rmain" data-act="strow" data-k="${esc(r.name)}">
           <div class="rn">${esc(r.name)}<span class="rsp">${sub}</span></div>
           <div class="ra">${won(amt)}원</div>
         </div>
-        <div class="rck">
-          <button class="dot inv ${c.inv?'on':''}" onclick="cycInv('${esc(r.name)}')">계${c.inv&&c.invD?`<i>${mdy(c.invD)}</i>`:''}</button>
-          <button class="dot paid" onclick="cycPaid('${esc(r.name)}')">입</button>
-        </div>
+        ${ING ? '' : `<div class="rck">
+          <button class="gotbtn" onclick="cycPaid('${esc(r.name)}')">받음</button>
+        </div>`}
         ${ptag}
         ${det}
       </div>`;
-  }).join('');
+  };
 
-  if(!rows.length) h += `<div class="secnone">${ING ? '진행중인 현장이 없습니다' : '받을 것이 없습니다 — 다 받았습니다'}</div>`;
+  h += dueRows.length ? dueRows.map(drawRow(false)).join('')
+                      : `<div class="secnone">다 받았습니다</div>`;
 
-  if(!ING){
+  {
     const ex = expMonth(new Date().getFullYear(), new Date().getMonth());
     h += `<div class="stsec">이번 달 경비 <span style="color:#94a3b8">· 가계부</span></div>`;
     h += `<div class="strow">
@@ -2560,12 +2591,9 @@ function renderSettle(){
         <div class="exrow tot"><span>경비 합계</span><b>${won(ex.tot)}원</b></div>
       </div>`;
   }
-  h += ING
-    ? `<div class="hint" style="padding:10px 12px 22px">이 달에 <b>청소가 아직 남은 현장</b>입니다.
-        마지막 청소가 끝나는 날 <b>'받을 것' 탭으로 올라갑니다.</b></div>`
-    : `<div class="hint" style="padding:10px 12px 22px">청소가 다 끝나 <b>이제 받으면 되는 현장</b>입니다.
-        <b>입금 받음(입)</b>을 누르면 날짜를 고르고, 그 자리에 초록색 받음 표시가 붙습니다.
-        금액은 <b>다음 구간으로 넘어갑니다.</b></div>`;
+  if(ingRows.length) h += `<div class="ingline">아직 일하는 중 ${ingRows.length}곳 · ${won(ingSum)}원 — 청소가 끝나면 위에 올라옵니다</div>`;
+  h += `<div class="hint" style="padding:10px 12px 22px">돈이 들어오면 <b>[받음]</b>만 누르시면 됩니다. <b>오늘 날짜</b>로 들어갑니다.
+      다른 날 들어온 거면 <b>줄을 눌러</b> 받은 기록에서 날짜를 고치세요.</div>`;
 
   const keepTop = calwrap.scrollTop;
   calwrap.innerHTML = h;
