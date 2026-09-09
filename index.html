@@ -666,7 +666,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v26';
+const APP_VER = 'v27';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2581,7 +2581,11 @@ function renderSettle(){
   };
 
   h += dueRows.length ? dueRows.map(drawRow(false)).join('')
-                      : `<div class="secnone">다 받았습니다</div>`;
+                      : `<div class="secnone">받을 것이 없습니다 — 아래는 아직 일하는 중입니다</div>`;
+  if(ingRows.length){
+    h += `<div class="ingttl">아직 일하는 중 <span>${ingRows.length}곳 · ${won(ingSum)}원</span></div>`;
+    h += ingRows.map(drawRow(true)).join('');
+  }
 
   {
     const ex = expMonth(new Date().getFullYear(), new Date().getMonth());
@@ -2591,7 +2595,6 @@ function renderSettle(){
         <div class="exrow tot"><span>경비 합계</span><b>${won(ex.tot)}원</b></div>
       </div>`;
   }
-  if(ingRows.length) h += `<div class="ingline">아직 일하는 중 ${ingRows.length}곳 · ${won(ingSum)}원 — 청소가 끝나면 위에 올라옵니다</div>`;
   h += `<div class="hint" style="padding:10px 12px 22px">돈이 들어오면 <b>[받음]</b>만 누르시면 됩니다. <b>오늘 날짜</b>로 들어갑니다.
       다른 날 들어온 거면 <b>줄을 눌러</b> 받은 기록에서 날짜를 고치세요.</div>`;
 
