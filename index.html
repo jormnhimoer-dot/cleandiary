@@ -165,6 +165,35 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .rdet .hrow{cursor:pointer}
 .rdet .hnone{font-size:12.5px;color:#cbd5e1;font-weight:700;padding:5px 0}
 .datesbox{display:flex;flex-wrap:wrap;gap:6px}
+/* 달력으로 날짜 고르기 */
+.calbox{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:8px 7px 12px}
+.calhd{display:flex;align-items:center;gap:6px;padding:2px 4px 8px}
+.calhd b{flex:1;text-align:center;font-size:16.5px;font-weight:900;color:#0f172a}
+.calnav{flex:0 0 38px;width:38px;height:38px;border:0;border-radius:11px;background:#f1f5f9;color:#0f172a;font-size:18px;font-weight:900;line-height:1}
+.calwk{display:grid;grid-template-columns:repeat(7,1fr)}
+.calwk span{text-align:center;font-size:11px;font-weight:800;color:#94a3b8;padding:3px 0 5px}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px 0}
+.cald{position:relative;height:44px;border:0;background:transparent;border-radius:11px;font-size:15.5px;font-weight:800;color:#0f172a;padding:0}
+.cald.sun{color:#e11d48}
+.cald.sat{color:#2563eb}
+.cald.hol{color:#e11d48}
+.cald.off{visibility:hidden}
+.cald.tod{box-shadow:inset 0 0 0 2px #cbd5e1}
+.cald.on{background:#0ea5e9;color:#fff;box-shadow:none}
+.cald.edge{background:#0ea5e9;color:#fff;box-shadow:none}
+.cald.mid{background:#e0f2fe;color:#0369a1;border-radius:0}
+.cald i{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#cbd5e1}
+.cald.on i,.cald.edge i{background:#fff}
+.cald.mid i{background:#7dd3fc}
+.calfoot{display:flex;align-items:center;gap:8px;margin-top:14px;padding:13px 14px;border-radius:12px;
+  background:#f0f9ff;border:1px solid #bae6fd;color:#0369a1;font-size:14px;font-weight:800}
+.calfoot b{margin-left:auto;font-size:16px;font-weight:900;color:#075985}
+.calfoot.non{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.calchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.calchips .cc{font-size:12px;font-weight:800;padding:6px 10px;border-radius:9px;background:#e0f2fe;color:#0369a1}
+.pickrow{width:100%;display:flex;align-items:center;gap:8px;text-align:left;border:1px solid #cbd5e1;background:#fff;
+  border-radius:12px;padding:14px 13px;font-size:17px;font-weight:800;color:#0f172a}
+.pickrow i{margin-left:auto;font-style:normal;font-size:12px;font-weight:800;color:#0284c7}
 .mitems{margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:8px}
 .mi2{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:5px 0}
 .mi2 .d{flex:0 0 34px;color:#94a3b8;font-weight:800}
@@ -677,7 +706,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v30';
+const APP_VER = 'v31';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2332,61 +2361,146 @@ function datesTxt(c){
   return [...by.entries()].map(([m,dd])=>`${m}월 ${dd.join('·')}일`).join('  ');
 }
 
-/* ---------- 회당 현장 — 일한 날짜 적어 넣기 ---------- */
-let DAYSEL = null;
-function openCycDates(name){
-  DAYSEL = name;
-  const r = settleRows().find(x=>x.name===name); if(!r) return;
-  const c = cycOf(r), ds = (c.dates||[]).slice().sort();
-  openSheet('일한 날짜 적기', `
-    <div class="endname">${esc(name)}</div>
-    <div class="endbox">회당 <b>${won(parseAmt(r.amount))}원</b> 현장입니다.
-      날짜를 넣은 만큼 금액이 계산됩니다.<br>지금 <b>${ds.length}회 · ${won(parseAmt(r.amount)*ds.length)}원</b></div>
-    <div class="field"><label>날짜 추가</label>
-      <input type="date" id="cdPick" value="${todayYmd()}">
-      <button class="btn sec" style="width:100%;margin-top:8px" onclick="addCycDate()">이 날짜 넣기</button></div>
-    <div class="field"><label>넣은 날짜</label>
-      <div class="datesbox">${ds.length ? ds.map(d=>{ const p=parseYmd(d);
-        return `<span class="datechip">${p.getMonth()+1}월 ${p.getDate()}일 <b onclick="delCycDate('${d}')">✕</b></span>`; }).join('')
-        : '<div class="hint">아직 없습니다. 위에서 날짜를 넣어 주세요.</div>'}</div></div>
+/* ---------- 날짜는 전부 이 달력 하나로 고릅니다 ----------
+   mode 'multi' : 여러 날 톡톡 눌러 한 번에      (회당 현장 일한 날짜)
+   mode 'range' : 첫 번째 누른 날 ~ 두 번째 누른 날 (정산 구간)
+   mode 'one'   : 하루만                          (받은 날 / 계산서 낸 날) */
+let CAL = null;
+function openCal(o){
+  CAL = Object.assign({ mode:'multi', sel:[], from:'', to:'', unit:0, sites:[] }, o);
+  const base = CAL.mode === 'range' ? (CAL.from || todayYmd()) : (CAL.sel[0] || todayYmd());
+  const b = parseYmd(base);
+  CAL.y = b.getFullYear(); CAL.m = b.getMonth();
+  drawCal();
+}
+function calMove(k){
+  const d = new Date(CAL.y, CAL.m + k, 1);
+  CAL.y = d.getFullYear(); CAL.m = d.getMonth(); drawCal();
+}
+function calTap(v){
+  if(!CAL) return;
+  if(CAL.mode === 'one'){ CAL.sel = [v]; }
+  else if(CAL.mode === 'multi'){
+    const i = CAL.sel.indexOf(v);
+    if(i >= 0) CAL.sel.splice(i, 1); else { CAL.sel.push(v); CAL.sel.sort(); }
+  } else {
+    if(!CAL.from || (CAL.from && CAL.to)){ CAL.from = v; CAL.to = ''; }
+    else if(v < CAL.from){ CAL.to = CAL.from; CAL.from = v; }
+    else CAL.to = v;
+  }
+  drawCal();
+}
+function calReset(){ if(!CAL) return; CAL.sel = []; CAL.from = ''; CAL.to = ''; drawCal(); }
+function calSave(){
+  if(!CAL) return;
+  if(CAL.mode === 'range'){
+    if(!CAL.from){ toast('시작할 날을 눌러 주세요'); return; }
+    if(!CAL.to){ toast('끝나는 날을 한 번 더 눌러 주세요'); return; }
+  }
+  if(CAL.mode === 'one' && !CAL.sel.length){ toast('날짜를 눌러 주세요'); return; }
+  const f = CAL.onSave;
+  const a = CAL.mode === 'range' ? { from:CAL.from, to:CAL.to }
+          : CAL.mode === 'one'   ? { date:CAL.sel[0] }
+          : { dates:CAL.sel.slice() };
+  CAL = null; closeSheet(); if(f) f(a);
+}
+function calClearBtn(){ const f = CAL && CAL.onClear; CAL = null; closeSheet(); if(f) f(); }
+function calBack(){ const f = CAL && CAL.onBack; CAL = null; if(f) f(); else closeSheet(); }
+function drawCal(){
+  const y = CAL.y, m = CAL.m, dim = daysInMonth(y, m), lead = new Date(y, m, 1).getDay();
+  const t = todayYmd();
+  /* 이 달에 청소하는 날 — 고를 때 눈으로 찾기 쉬우라고 점을 찍어 둡니다 */
+  const marks = new Set();
+  (CAL.sites||[]).forEach(st=>{ for(let d=1; d<=dim; d++){ const dd = new Date(y,m,d); if(occursOn(st, dd) && !isSkipped(st, dd)) marks.add(ymd(dd)); } });
+  let cells = '';
+  for(let i=0;i<lead;i++) cells += '<button class="cald off"></button>';
+  for(let d=1; d<=dim; d++){
+    const v = `${y}-${pad(m+1)}-${pad(d)}`;
+    const w = new Date(y, m, d).getDay();
+    let cls = 'cald' + (holidayOf(v) ? ' hol' : w===0 ? ' sun' : w===6 ? ' sat' : '') + (v===t ? ' tod' : '');
+    if(CAL.mode === 'range'){
+      if(v === CAL.from || v === CAL.to) cls += ' edge';
+      else if(CAL.from && CAL.to && v > CAL.from && v < CAL.to) cls += ' mid';
+    } else if(CAL.sel.includes(v)) cls += ' on';
+    cells += `<button class="${cls}" onclick="calTap('${v}')">${d}${marks.has(v)?'<i></i>':''}</button>`;
+  }
+  let foot;
+  if(CAL.mode === 'range'){
+    foot = (CAL.from && CAL.to) ? `<div class="calfoot"><span>정산 구간</span><b>${spanTxt({from:CAL.from,to:CAL.to})}</b></div>`
+         : CAL.from ? `<div class="calfoot non"><span>끝나는 날을 한 번 더 눌러 주세요</span><b>${mdy(CAL.from)} ~</b></div>`
+         : `<div class="calfoot non"><span>시작할 날을 눌러 주세요</span></div>`;
+  } else if(CAL.mode === 'one'){
+    foot = CAL.sel.length ? `<div class="calfoot"><span>고른 날</span><b>${mdy(CAL.sel[0])}</b></div>`
+                          : `<div class="calfoot non"><span>날짜를 눌러 주세요</span></div>`;
+  } else {
+    const n = CAL.sel.length;
+    foot = n ? `<div class="calfoot"><span>${n}일 선택</span><b>${CAL.unit?won(CAL.unit*n)+'원':''}</b></div>`
+             : `<div class="calfoot non"><span>청소한 날을 눌러 주세요 · 여러 개 됩니다</span></div>`;
+    if(n) foot += `<div class="calchips">${CAL.sel.map(v=>`<span class="cc">${mdy(v)}</span>`).join('')}</div>`;
+  }
+  openSheet(CAL.title, `
+    <div class="endname">${esc(CAL.name||'')}</div>
+    ${CAL.note ? `<div class="endbox">${CAL.note}</div>` : ''}
+    <div class="calbox">
+      <div class="calhd"><button class="calnav pv" onclick="calMove(-1)">‹</button>
+        <b>${y}년 ${m+1}월</b>
+        <button class="calnav nx" onclick="calMove(1)">›</button></div>
+      <div class="calwk"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="calgrid">${cells}</div>
+    </div>
+    ${foot}
+    <button class="btn pri dtsub" style="margin-top:14px" onclick="calSave()">넣기</button>
+    ${CAL.mode!=='one' ? `<button class="btn sec" style="width:100%;margin-top:10px" onclick="calReset()">고른 것 지우기</button>` : ''}
+    ${CAL.onClear ? `<button class="btn dan" style="width:100%;margin-top:10px" onclick="calClearBtn()">표시 지우기</button>` : ''}
+    ${CAL.onBack ? `<button class="btn sec" style="width:100%;margin-top:10px" onclick="calBack()">그냥 돌아가기</button>` : ''}
   `);
 }
-function addCycDate(){
-  const v = ($('#cdPick')||{}).value; if(!v){ toast('날짜를 골라 주세요'); return; }
-  const r = settleRows().find(x=>x.name===DAYSEL); if(!r) return;
-  const c = cycOf(r);
-  if(c.dates.includes(v)){ toast('이미 넣은 날짜입니다'); return; }
-  c.dates.push(v); c.dates.sort(); save(true); openCycDates(DAYSEL); renderSettle();
-}
-function delCycDate(d){
-  const r = settleRows().find(x=>x.name===DAYSEL); if(!r) return;
-  const c = cycOf(r);
-  c.dates = c.dates.filter(x=>x!==d); save(true); openCycDates(DAYSEL); renderSettle();
-}
 
-/* ---------- 정산 구간 고치기 ---------- */
-let SPANSEL = null;
-function openCycSpan(name){
-  SPANSEL = name;
+/* ---------- 회당 현장 — 일한 날짜 (구간은 앱이 알아서) ---------- */
+function openCycDates(name){
   const r = settleRows().find(x=>x.name===name); if(!r) return;
   const c = cycOf(r);
-  openSheet('정산 구간 고치기', `
-    <div class="endname">${esc(name)}</div>
-    <div class="endbox">지금 받을 차례인 <b>정산 구간</b>입니다.
-      처음 쓰기 시작할 때 실제와 맞춰 두면 그 뒤로는 자동으로 넘어갑니다.</div>
-    <div class="field"><label>시작</label><input type="date" id="spFrom" value="${esc(c.from)}"></div>
-    <div class="field"><label>끝</label><input type="date" id="spTo" value="${esc(c.to)}"></div>
-    <div class="bn-actions" style="margin-top:18px">
-      <button class="btn pri" onclick="saveCycSpan()">저장</button>
-    </div>`);
+  openCal({
+    mode:'multi', title:'일한 날짜 고르기', name,
+    note:`회당 <b>${won(parseAmt(r.amount))}원</b> 현장입니다. 청소한 날을 <b>여러 개 눌러</b> 한 번에 넣으세요.<br>정산 구간은 넣은 날짜를 보고 <b>앱이 알아서</b> 잡습니다.`,
+    sel:(c.dates||[]).slice(), unit:parseAmt(r.amount), sites:sitesOfRow(r),
+    onSave: a => {
+      c.dates = a.dates.slice().sort();
+      fitCycToDates(r, c);
+      save(true); renderSettle();
+      toast(a.dates.length ? `${a.dates.length}회 · ${won(parseAmt(r.amount)*a.dates.length)}원 · ${spanTxt(c)}`
+                           : '넣어 둔 날짜를 모두 지웠습니다');
+    }
+  });
 }
-function saveCycSpan(){
-  const a = ($('#spFrom')||{}).value, b = ($('#spTo')||{}).value;
-  if(!a || !b){ toast('날짜를 모두 골라 주세요'); return; }
-  if(a > b){ toast('끝나는 날이 시작보다 빠릅니다'); return; }
-  const r = settleRows().find(x=>x.name===SPANSEL); if(!r) return;
-  const c = cycOf(r); c.from = a; c.to = b;
-  save(true); closeSheet(); renderSettle(); toast('구간을 바꿨습니다');
+/* 회당 현장 — 넣은 날짜를 감싸도록 정산 구간을 맞춥니다 */
+function fitCycToDates(r, c){
+  const ds = (c.dates||[]).slice().sort();
+  if(!ds.length) return;                       /* 다 지우면 구간은 그대로 둡니다 */
+  const a = parseYmd(ds[0]), b = parseYmd(ds[ds.length-1]);
+  if(r.cutDay){                                /* 끊는 날이 있으면 그 날 기준으로 */
+    const cd = +r.cutDay;
+    const endOf = (yy, mm) => new Date(yy, mm, Math.min(cd, daysInMonth(yy, mm)));
+    let to = endOf(a.getFullYear(), a.getMonth());
+    let guard = 0;
+    while(ymd(to) < ds[ds.length-1] && guard++ < 60) to = endOf(to.getFullYear(), to.getMonth()+1);
+    c.to = ymd(to); c.from = addMonthYmd(c.to, -1);
+    return;
+  }
+  c.from = ymd(new Date(a.getFullYear(), a.getMonth(), 1));
+  c.to   = ymd(new Date(b.getFullYear(), b.getMonth(), daysInMonth(b.getFullYear(), b.getMonth())));
+}
+
+/* ---------- 정산 구간 고치기 — 달력에서 두 번 누르기 ---------- */
+function openCycSpan(name){
+  const r = settleRows().find(x=>x.name===name); if(!r) return;
+  const c = cycOf(r);
+  openCal({
+    mode:'range', title:'정산 구간 고치기', name,
+    note:'달력에서 <b>시작할 날</b>을 한 번, <b>끝나는 날</b>을 한 번 누르면 됩니다.<br>달을 넘겨서도 고를 수 있어요.',
+    from:c.from, to:c.to, sites:sitesOfRow(r),
+    onSave: a => { c.from = a.from; c.to = a.to; save(true); renderSettle(); toast(`${spanTxt(a)}로 바꿨습니다`); }
+  });
 }
 
 /* ---------- 지난 정산 직접 넣기 / 고치기 ----------
@@ -2398,21 +2512,23 @@ function lastMonthRange(){
   const a = new Date(y, m, 1), b = new Date(a.getFullYear(), a.getMonth(), daysInMonth(a.getFullYear(), a.getMonth()));
   return { from: ymd(a), to: ymd(b) };
 }
-function openPastPay(name, idx){
+function openPastPay(name, idx, over){
   const r = settleRows().find(x=>x.name===name); if(!r) return;
   const h = cycHistOf(name);
   const ed = (idx !== undefined && idx !== null) ? h[idx] : null;
-  PAYSEL = { name, idx: (ed ? idx : null) };
   const lm = lastMonthRange();
-  const v = ed || { from: lm.from, to: lm.to, amount: r.total0 || parseAmt(r.amount), paidD: todayYmd(), invD:'' };
+  const v = Object.assign({ from: lm.from, to: lm.to, amount: r.total0 || parseAmt(r.amount),
+                            paidD: todayYmd(), invD:'' }, ed || {}, over || {});
+  PAYSEL = { name, idx: (ed ? idx : null), v };
   openSheet(ed ? '받은 기록 고치기' : '지난 정산 직접 넣기', `
     <div class="endname">${esc(name)}</div>
     <div class="endbox">${ed ? '이미 넣어 둔 기록입니다. 날짜나 금액을 고칠 수 있습니다.'
       : '<b>이미 받은 지난 정산</b>을 여기에 적어 두면 월별 기록에 들어갑니다.<br>지금 받을 차례인 구간은 건드리지 않습니다.'}</div>
-    <div class="field"><label>정산 구간 — 시작</label><input type="date" id="ppFrom" value="${esc(v.from)}"></div>
-    <div class="field"><label>정산 구간 — 끝</label><input type="date" id="ppTo" value="${esc(v.to)}"></div>
+    <div class="field"><label>정산 구간</label>
+      <button class="pickrow" onclick="ppPick('span')">${spanTxt(v)}<i>달력에서 고르기</i></button></div>
     <div class="field"><label>받은 금액</label><input type="text" id="ppAmt" inputmode="numeric" value="${won(v.amount)}"></div>
-    <div class="field"><label>받은 날짜 (통장에 찍힌 날)</label><input type="date" id="ppPaid" value="${esc(v.paidD)}">
+    <div class="field"><label>받은 날짜 (통장에 찍힌 날)</label>
+      <button class="pickrow" onclick="ppPick('paid')">${mdy(v.paidD)}<i>달력에서 고르기</i></button>
       <div class="hint">이 날짜가 들어간 <b>달</b>의 월별 기록에 쌓입니다.</div></div>
     <div class="bn-actions" style="margin-top:18px">
       ${ed ? `<button class="btn dan" onclick="delPastPay()">이 기록 지우기</button>` : ''}
@@ -2422,10 +2538,28 @@ function openPastPay(name, idx){
       if(a) a.addEventListener('input', e=>{ const n = parseAmt(e.target.value); e.target.value = n ? won(n) : ''; });
     });
 }
+/* 지난 정산 창에서 달력을 열었다가 그대로 돌아옵니다 — 적어 둔 금액은 안 날아갑니다 */
+function ppPick(which){
+  if(!PAYSEL) return;
+  const cur = Object.assign({}, PAYSEL.v, { amount: parseAmt((($('#ppAmt')||{}).value) || PAYSEL.v.amount) });
+  const name = PAYSEL.name, idx = PAYSEL.idx;
+  const back = ()=> openPastPay(name, idx, cur);
+  if(which === 'span'){
+    openCal({ mode:'range', title:'정산 구간 고르기', name,
+      note:'<b>시작할 날</b>을 한 번, <b>끝나는 날</b>을 한 번 누르세요.',
+      from:cur.from, to:cur.to, onBack:back,
+      onSave: a => openPastPay(name, idx, Object.assign({}, cur, { from:a.from, to:a.to })) });
+  } else {
+    openCal({ mode:'one', title:'받은 날짜 고르기', name,
+      note:'통장에 찍힌 날을 누르세요.',
+      sel:[cur.paidD], onBack:back,
+      onSave: a => openPastPay(name, idx, Object.assign({}, cur, { paidD:a.date })) });
+  }
+}
 function savePastPay(){
   if(!PAYSEL) return;
   const g = id => ($('#'+id) || {}).value || '';
-  const from = g('ppFrom'), to = g('ppTo'), paidD = g('ppPaid'), amount = parseAmt(g('ppAmt'));
+  const from = PAYSEL.v.from, to = PAYSEL.v.to, paidD = PAYSEL.v.paidD, amount = parseAmt(g('ppAmt'));
   if(!from || !to){ toast('정산 구간을 골라 주세요'); return; }
   if(from > to){ toast('끝나는 날이 시작보다 빠릅니다'); return; }
   if(!paidD){ toast('받은 날짜를 골라 주세요'); return; }
@@ -2448,25 +2582,12 @@ function delPastPay(){
 
 /* ---------- 계산서 / 입금 ---------- */
 /* [계]/[입] 은 누를 때마다 날짜부터 고릅니다 — 오늘 / 직접 넣기 */
-let DTPICK = null;
 function dateSheet(title, name, note, curD, onPick, onClear){
-  DTPICK = { onPick, onClear };
-  const t = todayYmd(), td = parseYmd(t);
-  openSheet(title, `
-    <div class="endname">${esc(name)}</div>
-    <div class="endbox">${note}</div>
-    <div class="field dtfield"><label>날짜</label>
-      <input type="date" id="dtPick" value="${esc(curD || t)}">
-      <div class="hint">오늘(${td.getMonth()+1}월 ${td.getDate()}일)이 들어가 있습니다. 다른 날이면 바꿔 주세요.</div></div>
-    <button class="btn pri dtsub" onclick="dtGo(($('#dtPick')||{}).value)">확인</button>
-    ${onClear ? `<button class="btn dan" style="width:100%;margin-top:16px" onclick="dtClear()">표시 지우기</button>` : ''}
-  `);
+  openCal({ mode:'one', title, name, note,
+    sel:[curD || todayYmd()],
+    onSave: a => onPick(a.date),
+    onClear: onClear || null });
 }
-function dtGo(d){
-  if(!d){ toast('날짜를 골라 주세요'); return; }
-  const f = DTPICK && DTPICK.onPick; DTPICK = null; closeSheet(); if(f) f(d);
-}
-function dtClear(){ const f = DTPICK && DTPICK.onClear; DTPICK = null; closeSheet(); if(f) f(); }
 
 function openInvTodo(){
   const rows = settleRows().map(r=>{ const c = cycOf(r); return { r, c, amt: cycAmount(r, c) }; })
@@ -2571,9 +2692,9 @@ function renderSettle(){
         <div class="span">${settled ? `${spanTxt(lp)} 받음 \u00b7 다음은 ${spanTxt(c)}` : `${spanTxt(c)} 정산분`}${per?` \u00b7 회당 ${won(parseAmt(r.amount))}원 × ${c.dates.length}회`:''}</div>
         <div class="meta">${r.kids?`현장 ${r.kids.length}곳 묶음`:(per?'회당 정산':'월 정액')}${r.cutDay?` · 매월 ${r.cutDay}일에 끊음`:''}</div>
         ${r.kids?`<div class="kids">${r.kids.map(x=>`<div class="kid"><span>${esc(x.name)}</span><b>${won(x.total)}원</b></div>`).join('')}</div>`:''}
-        ${per?`<button class="rfix" onclick="openCycDates('${esc(r.name)}')">일한 날짜 넣기 · 고치기</button>`:''}
+        ${per?`<button class="rfix" onclick="openCycDates('${esc(r.name)}')">일한 날짜 고르기 · 고치기</button>`:''}
         ${r.invoice ? `<button class="rfix ${c.inv?'invon':''}" onclick="cycInv('${esc(r.name)}')">계산서 ${c.inv&&c.invD?`발행함 · ${mdy(c.invD)}`:'발행 표시하기'}</button>` : ''}
-        <button class="rfix" onclick="openCycSpan('${esc(r.name)}')">정산 구간 고치기</button>
+        ${per?'':`<button class="rfix" onclick="openCycSpan('${esc(r.name)}')">정산 구간 고치기</button>`}
         ${r.kids?'':`<button class="rfix" data-act="stsite" data-name="${esc(r.name)}">현장 수정</button>`}
         <div class="hsec">받은 기록 ${hist.length?`${hist.length}건`:''}</div>
         ${hist.length ? hist.slice(0,6).map((x,i)=>`
@@ -2593,7 +2714,7 @@ function renderSettle(){
     return `<div class="srow ${op?'open':''} ${working?'workrow':''} ${settled?'okrow':''}">
         <div class="rmain" data-act="strow" data-k="${esc(r.name)}">
           <div class="rn">${esc(r.name)}${r.prepay?'<b class="pre">선</b>':''}<span class="rsp">${settled ? `${spanTxt(lp)} \u00b7 <b class="okt">정산완료</b>` : sub}</span>
-            ${(!settled && invTxt) ? `<span class="invnote">계산서 ${esc(invTxt)}</span>` : ''}</div>
+            ${invTxt ? `<span class="invnote">계산서 ${esc(invTxt)}</span>` : ''}</div>
           <div class="ra">${won(settled ? lp.amount : amt)}원</div>
         </div>
         ${settled ? '' : (r.billing === 'per' && !(c.dates||[]).length
