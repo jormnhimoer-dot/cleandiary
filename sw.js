@@ -1,5 +1,5 @@
 /* cleandiary service worker — network-first, cache fallback */
-const CACHE = 'cleandiary-v31';
+const CACHE = 'cleandiary-v33';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

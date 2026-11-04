@@ -80,6 +80,45 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .bn-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#f1f5f9;color:#475569}
 .chip.c-end{background:#e2e8f0;color:#64748b}
+.pyhead{display:flex;align-items:center;gap:8px;background:#0f172a;color:#fff;border-radius:14px;margin:8px 6px 6px;padding:10px 8px}
+.pyhead button{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.1);color:#fff;font-size:20px;font-weight:900}
+.pyhead .yy{flex:1;text-align:center}
+.pyhead .yy b{display:block;font-size:17px;font-weight:900}
+.pyhead .yy span{font-size:12.5px;color:#cbd5e1;font-weight:700}
+.pyhead .yy i{font-style:normal;color:#fde047;font-weight:900;font-size:15px}
+.pythis{margin:0 8px 8px;font-size:13px;font-weight:700;color:#475569}
+.pythis b{color:#0f172a;font-weight:900}
+.pyscroll{overflow-x:auto;margin:0 6px;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.08);-webkit-overflow-scrolling:touch}
+.pyt{border-collapse:separate;border-spacing:0;font-size:13px}
+.pyt th,.pyt td{border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;min-width:52px;height:44px;text-align:center;padding:0 2px}
+.pyt th{height:32px;background:#f1f5f9;font-weight:800;color:#475569;font-size:12.5px}
+.pyt th.now{background:#0f172a;color:#fff}
+.pyt td.now{box-shadow:inset 0 0 0 1.5px #0f172a33}
+.pyt .fx{position:sticky;left:0;z-index:2;background:#fff;min-width:118px;max-width:118px;text-align:left;padding:4px 8px;border-right:1.5px solid #cbd5e1}
+.pyt th.fx{background:#f1f5f9;z-index:3}
+.pyt .fx .nm{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a}
+.pyt .fx .am .iv{margin-left:5px;font-size:11.5px;color:#ea580c;font-weight:900}
+.pyt .fx .am{font-size:11.5px;color:#64748b;font-weight:700}
+.pyt td.pc{font-weight:900;font-size:14px}
+.pyt td.ok{background:#fde047;color:#0f172a}
+.pyt td.iv{color:#2563eb}
+.pyt td.etc{color:#dc2626;font-size:11.5px;font-weight:800;word-break:keep-all;line-height:1.15}
+.pyt tfoot td{background:#f8fafc;font-weight:900;font-size:12px;color:#0f172a;height:40px}
+.pyt tfoot .fx{background:#f8fafc}
+.pybtns{display:flex;gap:10px;margin:4px 0 14px}
+.pybtns button{flex:1;height:56px;border-radius:14px;font-size:19px;font-weight:900;border:2px solid #e2e8f0;background:#fff}
+.pybtns .iv{color:#2563eb}.pybtns .iv.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.pybtns .ok.on,.pybtns .ok:active{background:#fde047;border-color:#eab308}
+.pyrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.pyrow .dp-in{flex:1}
+.flabel{font-size:13px;font-weight:800;color:#475569;margin:6px 0 6px}
+.pysave{height:44px;padding:0 16px;border-radius:11px;background:#0f172a;color:#fff;font-weight:800}
+.pyu{font-weight:800;color:#475569}
+.pyclr{width:100%;margin-top:12px;height:46px;border-radius:12px;background:#fee2e2;color:#b91c1c;font-weight:800}
+.pyinfo{border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.pyinfo .pin{font-weight:900;margin-bottom:6px}
+.pyinfo .pil{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-bottom:1px dashed #e2e8f0}
+.pyinfo .pil span{color:#64748b;font-weight:700}
 .stbar{position:sticky;top:0;z-index:5;background:#0f172a;color:#fff;border-radius:14px;margin:8px 6px 12px;padding:13px 15px;box-shadow:0 6px 18px rgba(15,23,42,.22)}
 .stbar .l{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .stbar .l span{font-size:13px;font-weight:700;color:#cbd5e1}
@@ -706,11 +745,11 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v31';
+const APP_VER = 'v33';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
-const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, hist: {}, cyc: {}, cycH: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
+const DEFAULT_DATA = { sites: [], once: {}, memos: {}, personal: {}, expense: {}, order: {}, offdays: {}, settle: {}, done: {}, hist: {}, cyc: {}, cycH: {}, pay: {}, ui: { tab: 0, colorBy: 'site', lastBackup: '' } };
 
 /* 저장 잠금 — 읽기에 실패했거나 다른 화면이 더 최신일 때 켜집니다.
    잠긴 동안에는 아무것도 쓰지 않습니다. 빈 내용이 멀쩡한 데이터를 덮어쓰던 사고를 막습니다. */
@@ -729,6 +768,7 @@ function fillDefaults(p){
   d.hist = d.hist || {};                       /* 월별 기록(확정된 달) — 옛 백업에는 없습니다 */
   d.cyc  = d.cyc  || {};                       /* 현장별 지금 정산 구간 — 옛 백업에는 없습니다 */
   d.cycH = d.cycH || {};                       /* 받은 기록 — 옛 백업에는 없습니다 */
+  d.pay  = d.pay  || {};                       /* v32 정산표 — {이름:{'2026-09':{s,t,a}}} 옛 백업에는 없습니다 */
   d.personal = d.personal || {}; d.expense = d.expense || {};
   d.order = d.order || {}; d.memos = d.memos || {};
   d.offdays = d.offdays || {}; d.settle = d.settle || {}; d.once = d.once || {};
@@ -1434,7 +1474,7 @@ function syncArrows(){
   const a = $('#btnPrev'), b = $('#btnNext'), h = $('#btnHist'), t = $('#btnToday');
   if(a) a.style.display = 'none';
   if(b) b.style.display = 'none';
-  if(h) h.style.display = (TAB===3) ? 'flex' : 'none';   /* 월별 기록은 정산금액 탭에서만 */
+  if(h) h.style.display = 'none';   /* v32: 월별기록 대신 정산표 맨 아래 합계 줄 */
   if(t) t.style.display = isSettleTab() ? 'none' : 'flex';
 }
 
@@ -2649,7 +2689,7 @@ function settleRows(){
   return regularRows(y, m).map(r=>({ ...r, total0: r.total }));
 }
 let OPENROW = new Set();
-function renderSettle(){
+function renderSettleOld(){
   panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
   calwrap.classList.remove('compact'); calwrap.classList.add('list');
 
@@ -2748,6 +2788,149 @@ function renderSettle(){
   calwrap.innerHTML = h;
   if(keepTop > 0) calwrap.scrollTop = keepTop;
 }
+
+/* ==================== v32 정산표 ====================
+   엑셀처럼 현장은 세로, 달은 가로. 칸마다 발급 / 완 / 기타(직접 씀).
+   맨 아래 줄은 그 달 '완' 합계, 맨 위는 1년 합계. */
+let PAYY = new Date().getFullYear();
+let PAY_SCROLLED = false;
+const DOWK = ['일','월','화','수','목','금','토'];
+function payRows(){
+  const y0 = `${PAYY}-01-01`, y1 = `${PAYY}-12-31`;
+  const map = new Map();
+  D.sites.forEach(s=>{
+    if(s.endDate && s.endDate < y0) return;
+    if(s.startDate && s.startDate > y1) return;
+    const nm = (s.name||'').trim() || '(이름 없음)';
+    const c = (s.client||'').trim();
+    const k = c || nm;
+    const g = map.get(k) || { name:k, kids:[], amount:0, per:false };
+    g.kids.push(s);
+    g.amount += parseAmt(s.amount);
+    if(s.billing === 'per') g.per = true;
+    map.set(k, g);
+  });
+  /* 기록만 남은 이름(현장을 지웠어도)도 그 해 표시가 있으면 보여 줍니다 */
+  Object.keys(D.pay||{}).forEach(k=>{
+    if(map.has(k)) return;
+    const m = D.pay[k]||{};
+    if(Object.keys(m).some(x=>x.startsWith(PAYY+'-'))) map.set(k, { name:k, kids:[], amount:0, per:false, gone:true });
+  });
+  return [...map.values()];
+}
+function payCell(name, mk){ return ((D.pay||{})[name]||{})[mk] || null; }
+function payAmtOf(row, y, m){
+  const c = payCell(row.name, `${y}-${pad(m+1)}`);
+  if(c && c.a != null && c.a !== '') return +c.a || 0;
+  const r = regularRows(y, m).find(x=>x.name === row.name);
+  return r ? r.total : row.amount;
+}
+function repTxt(s){
+  const r = s.rep || {};
+  const ds = (r.days||[]).slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(d=>DOWK[d]).join('');
+  if(r.type === 'weekly') return ds || '-';
+  if(r.type === 'biweekly') return '격주 ' + ds;
+  if(r.type === 'monthly_date') return `매달 ${r.day||1}일`;
+  if(r.type === 'monthly_nth') return `매달 ${r.nth===5?'마지막':r.nth+'째'} ${DOWK[r.weekday]}`;
+  if(r.type === 'dates') return '날짜 지정';
+  return '-';
+}
+function renderSettle(){
+  panelOpen = false; daypanel.classList.remove('open'); daypanel.innerHTML='';
+  calwrap.classList.remove('compact'); calwrap.classList.add('list');
+  const rows = payRows();
+  const now = new Date(), cy = now.getFullYear(), cm = now.getMonth();
+  const mon = [...Array(12).keys()];
+  const sums = mon.map(m=> rows.reduce((a,r)=>{
+    const c = payCell(r.name, `${PAYY}-${pad(m+1)}`);
+    return a + (c && c.s === '완' ? payAmtOf(r, PAYY, m) : 0);
+  }, 0));
+  const ySum = sums.reduce((a,b)=>a+b, 0);
+  const thisM = (PAYY === cy) ? sums[cm] : 0;
+
+  let h = `<div class="pyhead">
+      <button onclick="PAYY--;PAY_SCROLLED=false;renderSettle()">‹</button>
+      <div class="yy"><b>${PAYY}년</b><span>1년 합계 <i>${won(ySum)}원</i></span></div>
+      <button onclick="PAYY++;PAY_SCROLLED=false;renderSettle()">›</button>
+    </div>`;
+  if(PAYY === cy) h += `<div class="pythis">${cm+1}월 받은 돈 <b>${won(thisM)}원</b></div>`;
+
+  h += `<div class="pyscroll" id="pyscroll"><table class="pyt"><thead><tr><th class="fx">현장</th>${
+      mon.map(m=>`<th class="${PAYY===cy&&m===cm?'now':''}" data-m="${m}">${m+1}월</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const amt = r.per ? `회당 ${won(r.kids[0]?parseAmt(r.kids[0].amount):0)}` : won(r.amount);
+    h += `<tr><td class="fx" onclick="openPayInfo('${esc(r.name)}')"><div class="nm">${esc(r.name)}</div><div class="am">${r.gone?'지운 현장':amt}${(()=>{const k=r.kids.find(x=>x.invoice||+x.invDay);return k?`<b class="iv">계${+k.invDay?k.invDay:''}</b>`:'';})()}</div></td>${
+      mon.map(m=>{
+        const c = payCell(r.name, `${PAYY}-${pad(m+1)}`);
+        const cls = !c ? '' : c.s === '완' ? 'ok' : c.s === '발급' ? 'iv' : 'etc';
+        const tx = !c ? '' : c.s === '기타' ? esc(c.t||'') : c.s;
+        return `<td class="pc ${cls} ${PAYY===cy&&m===cm?'now':''}" onclick="openPayCell('${esc(r.name)}',${m})">${tx}</td>`;
+      }).join('')}</tr>`;
+  });
+  h += `</tbody><tfoot><tr><td class="fx"><div class="nm">합계</div><div class="am">완 기준</div></td>${
+      sums.map((v,m)=>`<td class="${PAYY===cy&&m===cm?'now':''}">${v?wonS(v):''}</td>`).join('')}</tr></tfoot></table></div>`;
+  if(!rows.length) h += `<div class="secnone">등록된 현장이 없습니다</div>`;
+  h += `<div class="hint" style="padding:10px 12px 22px">칸을 누르면 <b>발급 / 완 / 기타</b>를 고릅니다. 현장 이름을 누르면 근무 요일·계산서 날짜가 나옵니다.
+      합계는 <b>완</b>으로 표시한 칸만 더합니다.</div>`;
+  calwrap.innerHTML = h;
+  const sc = $('#pyscroll');
+  if(sc && !PAY_SCROLLED && PAYY === cy){
+    const th = sc.querySelector('th[data-m="'+cm+'"]');
+    if(th) sc.scrollLeft = Math.max(0, th.offsetLeft - 118 - 52*2);
+    PAY_SCROLLED = true;
+  }
+}
+let PAYCELL = null;
+function openPayCell(name, m){
+  if(tMoved) return;
+  const mk = `${PAYY}-${pad(m+1)}`;
+  const row = payRows().find(r=>r.name === name) || { name, amount:0, kids:[] };
+  const c = payCell(name, mk) || {};
+  const def = payAmtOf(row, PAYY, m);
+  PAYCELL = { name, mk, m };
+  openSheet(`${name} · ${m+1}월`, `
+    <div class="pybtns">
+      <button class="iv ${c.s==='발급'?'on':''}" onclick="setPay('발급')">발급</button>
+      <button class="ok ${c.s==='완'?'on':''}" onclick="setPay('완')">완</button>
+    </div>
+    <div class="flabel">기타 (직접 쓰기)</div>
+    <div class="pyrow"><input id="pyTxt" class="dp-in" placeholder="예: 마지막, 미수" value="${c.s==='기타'?esc(c.t||''):''}"><button class="pysave" onclick="setPay('기타')">저장</button></div>
+    <div class="flabel">이 달 금액</div>
+    <div class="pyrow"><input id="pyAmt" class="dp-in" inputmode="numeric" value="${won(c.a!=null&&c.a!==''?c.a:def)}"><span class="pyu">원</span></div>
+    <div class="hint">회당 현장은 그 달 청소 횟수로 미리 계산돼 있습니다. 다르면 고쳐 주세요.</div>
+    ${c.s?`<button class="pyclr" onclick="setPay('')">표시 지우기</button>`:''}`);
+}
+function setPay(st){
+  if(!PAYCELL) return;
+  const { name, mk } = PAYCELL;
+  D.pay = D.pay || {};
+  const m = D.pay[name] = D.pay[name] || {};
+  if(!st){ delete m[mk]; }
+  else{
+    const t = st === '기타' ? ($('#pyTxt').value||'').trim() : '';
+    if(st === '기타' && !t){ toast('내용을 적어 주세요'); return; }
+    const a = parseAmt($('#pyAmt').value);
+    m[mk] = { s:st, t, a };
+  }
+  if(!Object.keys(m).length) delete D.pay[name];
+  save(); closeSheet(); renderSettle();
+}
+function openPayInfo(name){
+  if(tMoved) return;
+  const row = payRows().find(r=>r.name === name);
+  if(!row) return;
+  const one = s => `<div class="pyinfo">
+      ${row.kids.length>1?`<div class="pin">${esc(s.name)}</div>`:''}
+      <div class="pil"><span>시작일</span><b>${s.startDate?esc(mdy(s.startDate)):'-'}</b></div>
+      <div class="pil"><span>근무 패턴</span><b>${esc(repTxt(s))}</b></div>
+      <div class="pil"><span>금액</span><b>${s.billing==='per'?'회당 ':''}${won(parseAmt(s.amount))}원</b></div>
+      <div class="pil"><span>계산서</span><b>${s.invoice?(s.invDay?`${s.invDay}일 발행`:'발행'):'없음'}</b></div>
+      ${s.endDate?`<div class="pil"><span>끝나는 날</span><b>${esc(mdy(s.endDate))}</b></div>`:''}
+      <button class="rfix" onclick="editSite('${s.id}')">현장 수정</button>
+    </div>`;
+  openSheet(name, row.kids.length ? row.kids.map(one).join('') : `<div class="hint">현장 목록에서 지운 곳입니다. 기록만 남아 있습니다.</div>`);
+}
+
 function payNote(r){
   if(!r.payDay) return `<div class="paynote none">받는 날 안 정함 — 줄을 눌러 정해 주세요</div>`;
   const dt = payDateFor(r.payType, r.payDay, SMY, SMM);
