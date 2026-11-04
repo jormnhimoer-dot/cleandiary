@@ -745,7 +745,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v33';
+const APP_VER = 'v34';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2794,6 +2794,7 @@ function renderSettleOld(){
    맨 아래 줄은 그 달 '완' 합계, 맨 위는 1년 합계. */
 let PAYY = new Date().getFullYear();
 let PAY_SCROLLED = false;
+let PAY_SX = 0;
 const DOWK = ['일','월','화','수','목','금','토'];
 function payRows(){
   const y0 = `${PAYY}-01-01`, y1 = `${PAYY}-12-31`;
@@ -2872,12 +2873,18 @@ function renderSettle(){
   if(!rows.length) h += `<div class="secnone">등록된 현장이 없습니다</div>`;
   h += `<div class="hint" style="padding:10px 12px 22px">칸을 누르면 <b>발급 / 완 / 기타</b>를 고릅니다. 현장 이름을 누르면 근무 요일·계산서 날짜가 나옵니다.
       합계는 <b>완</b>으로 표시한 칸만 더합니다.</div>`;
+  const keepTop = calwrap.scrollTop;
   calwrap.innerHTML = h;
+  if(keepTop > 0) calwrap.scrollTop = keepTop;
   const sc = $('#pyscroll');
-  if(sc && !PAY_SCROLLED && PAYY === cy){
-    const th = sc.querySelector('th[data-m="'+cm+'"]');
-    if(th) sc.scrollLeft = Math.max(0, th.offsetLeft - 118 - 52*2);
-    PAY_SCROLLED = true;
+  if(sc){
+    if(!PAY_SCROLLED){
+      const th = sc.querySelector('th[data-m="'+(PAYY === cy ? cm : 0)+'"]');
+      PAY_SX = th ? Math.max(0, th.offsetLeft - 118 - 52*2) : 0;
+      PAY_SCROLLED = true;
+    }
+    sc.scrollLeft = PAY_SX;                   /* v34: 다시 그려도 보던 달 그대로 */
+    sc.addEventListener('scroll', ()=>{ PAY_SX = sc.scrollLeft; }, {passive:true});
   }
 }
 let PAYCELL = null;
@@ -4271,6 +4278,7 @@ calwrap.addEventListener('touchmove', e=>{
 }, {passive:true});
 calwrap.addEventListener('touchend', e=>{
   const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if(isSettleTab()) return;                 /* v34: 정산표는 옆으로 밀면 달만 움직입니다 — 주 이동 안 함 */
   if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.5) moveWeeks(dx<0 ? 1 : -1);
 }, {passive:true});
 
