@@ -115,6 +115,12 @@ button{border:none;background:none;cursor:pointer;padding:0}
 .pyt td.etc{color:#dc2626;font-size:11.5px;font-weight:800;word-break:keep-all;line-height:1.15}
 .pyt tfoot td{background:#f8fafc;font-weight:900;font-size:12px;color:#0f172a;height:40px}
 .pyt tfoot .fx{background:#f8fafc}
+.pyt tfoot td.pytot{padding:0;letter-spacing:-.4px}
+.pytot .dg{position:relative;display:block;height:40px;font-style:normal}
+.pytot .dg i{position:absolute;font-style:normal;line-height:1}
+.pytot .dg .a{left:5px;top:6px;font-size:12px;color:#64748b}
+.pytot .dg .sl{left:50%;top:50%;transform:translate(-50%,-50%) rotate(12deg);font-size:17px;font-weight:400;color:#94a3b8}
+.pytot .dg .b{right:5px;bottom:6px;font-size:12.5px;color:#0f172a}
 .pybtns{display:flex;gap:10px;margin:4px 0 14px}
 .pybtns button{flex:1;height:56px;border-radius:14px;font-size:19px;font-weight:900;border:2px solid #e2e8f0;background:#fff}
 .pybtns .iv{color:#2563eb}.pybtns .iv.on{background:#2563eb;color:#fff;border-color:#2563eb}
@@ -755,7 +761,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v35';
+const APP_VER = 'v36';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2842,7 +2848,7 @@ function payHide(name){
   if(tMoved) return;
   openSheet('정산표에서 빼기', `
     <div class="endname">${esc(name)}</div>
-    <div class="hint" style="margin:6px 0 14px">정산표에서만 안 보이게 합니다. <b>달력 일정과 지금까지 표시한 발급·완 기록은 그대로</b> 남고, 표 아래 <b>숨긴 현장</b>에서 언제든 다시 꺼낼 수 있습니다.</div>
+    <div class="hint" style="margin:6px 0 14px">정산표에서만 안 보이게 합니다. <b>달력 일정과 지금까지 표시한 발급·완 기록은 그대로</b> 남습니다. <b>뺀 현장은 다시 꺼낼 수 없으니</b> 신중히 눌러 주세요.</div>
     <button class="pyclr" style="background:#0f172a;color:#fff" onclick="setPayHide('${esc(name)}',true)">정산표에서 빼기</button>`);
 }
 function setPayHide(name, v){
@@ -2879,6 +2885,16 @@ function renderSettle(){
     const c = payCell(r.name, `${PAYY}-${pad(m+1)}`);
     return a + (c && c.s === '완' ? payAmtOf(r, PAYY, m) : 0);
   }, 0));
+  /* v36: 받을 총금액 — 그 달 일정이 있거나 칸에 표시가 있는 현장 금액을 모두 더함 */
+  const dues = mon.map(m=>{
+    const reg = new Set(regularRows(PAYY, m).map(x=>x.name));
+    return rows.reduce((a,r)=>{
+      const c = payCell(r.name, `${PAYY}-${pad(m+1)}`);
+      const on = c || r.kids.some(k=>reg.has((k.name||'').trim() || '(이름 없음)'));
+      return a + (on ? payAmtOf(r, PAYY, m) : 0);
+    }, 0);
+  });
+  const man = v => Math.round(v/10000).toLocaleString('ko-KR');
   const ySum = sums.reduce((a,b)=>a+b, 0);
   const thisM = (PAYY === cy) ? sums[cm] : 0;
 
@@ -2901,15 +2917,11 @@ function renderSettle(){
         return `<td class="pc ${cls} ${PAYY===cy&&m===cm?'now':''}" onclick="openPayCell('${esc(r.name)}',${m})">${tx}</td>`;
       }).join('')}</tr>`;
   });
-  h += `</tbody><tfoot><tr><td class="fx"><div class="nm">합계</div><div class="am">완 기준</div></td>${
-      sums.map((v,m)=>`<td class="${PAYY===cy&&m===cm?'now':''}">${v?wonS(v):''}</td>`).join('')}</tr></tfoot></table></div>`;
+  h += `</tbody><tfoot><tr><td class="fx"><div class="nm">합계</div><div class="am">받을/받은 · 만원</div></td>${
+      sums.map((v,m)=>`<td class="pytot ${PAYY===cy&&m===cm?'now':''}">${(dues[m] && (v || (PAYY===cy&&m===cm) || rows.some(r=>payCell(r.name,`${PAYY}-${pad(m+1)}`))))?`<span class="dg"><i class="a">${man(dues[m])}</i><i class="sl">/</i><i class="b">${man(v)}</i></span>`:''}</td>`).join('')}</tr></tfoot></table></div>`;
   if(!rows.length) h += `<div class="secnone">등록된 현장이 없습니다</div>`;
-  if(hidRows.length){
-    h += `<div class="pyhid" onclick="PAYHOPEN=!PAYHOPEN;renderSettle()">숨긴 현장 ${hidRows.length}곳 <span>${PAYHOPEN?'접기 ▴':'보기 ▾'}</span></div>`;
-    if(PAYHOPEN) h += `<div class="pyhlist">${hidRows.map(r=>`<div class="pyhrow"><span>${esc(r.name)}${r.ended?' <i>끝난 현장</i>':''}</span><button onclick="setPayHide('${esc(r.name)}',false)">다시 보이기</button></div>`).join('')}</div>`;
-  }
   h += `<div class="hint" style="padding:10px 12px 22px">칸을 누르면 <b>발급 / 완 / 기타</b>를 고릅니다. 현장 이름을 누르면 근무 요일·계산서 날짜가 나옵니다.
-      합계는 <b>완</b>으로 표시한 칸만 더합니다.</div>`;
+      합계는 <b>받을 돈/받은 돈</b>(만원)입니다. 받은 돈은 <b>완</b>으로 표시한 칸만 더합니다.</div>`;
   const keepTop = calwrap.scrollTop;
   calwrap.innerHTML = h;
   if(keepTop > 0) calwrap.scrollTop = keepTop;
