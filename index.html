@@ -761,7 +761,7 @@ const HOLIDAYS = {
 const holidayOf = s => HOLIDAYS[s] || null;
 
 /* ---------- 저장소 ---------- */
-const APP_VER = 'v36';
+const APP_VER = 'v37';
 const KEY = 'cleandiary.v1';
 const SNAP_PRE = 'cleandiary.snap.';   /* 예전 모습 보관본 */
 const SNAP_KEEP = 6;
@@ -2890,7 +2890,7 @@ function renderSettle(){
     const reg = new Set(regularRows(PAYY, m).map(x=>x.name));
     return rows.reduce((a,r)=>{
       const c = payCell(r.name, `${PAYY}-${pad(m+1)}`);
-      const on = c || r.kids.some(k=>reg.has((k.name||'').trim() || '(이름 없음)'));
+      const on = c || reg.has(r.name) || r.kids.some(k=>reg.has((k.name||'').trim() || '(이름 없음)'));   /* v37: 거래처로 묶인 줄도 일정 있으면 포함 */
       return a + (on ? payAmtOf(r, PAYY, m) : 0);
     }, 0);
   });
